@@ -1,10 +1,8 @@
 package nextstep.app.config;
 
 import nextstep.security.access.matcher.AnyRequestMatcher;
-import nextstep.security.authentication.AuthenticationManager;
-import nextstep.security.authentication.BasicAuthenticationFilter;
-import nextstep.security.authentication.UsernamePasswordAuthenticationFilter;
-import nextstep.security.authentication.UsernamePasswordAuthenticationProvider;
+import nextstep.security.authentication.*;
+import nextstep.security.authorization.MemberAuthorizationFilter;
 import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.FilterChainProxy;
 import nextstep.security.config.SecurityFilterChain;
@@ -44,6 +42,7 @@ public class AuthConfig implements WebMvcConfigurer {
         List<Filter> filters = new ArrayList<>();
         filters.add(new UsernamePasswordAuthenticationFilter(authenticationManager(), securityContextRepository()));
         filters.add(new BasicAuthenticationFilter(authenticationManager()));
+        filters.add(new MemberAuthorizationFilter());
         return new DefaultSecurityFilterChain(AnyRequestMatcher.INSTANCE, filters);
     }
 
