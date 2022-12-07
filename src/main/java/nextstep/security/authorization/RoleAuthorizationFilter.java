@@ -16,7 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-public class MemberAuthorizationFilter extends GenericFilterBean {
+public class RoleAuthorizationFilter extends GenericFilterBean {
     private static final MvcRequestMatcher DEFAULT_REQUEST_MATCHER = new MvcRequestMatcher(HttpMethod.GET,
             "/members");
 
