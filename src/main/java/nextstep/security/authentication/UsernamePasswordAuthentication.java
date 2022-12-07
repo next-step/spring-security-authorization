@@ -1,20 +1,38 @@
 package nextstep.security.authentication;
 
-import java.util.Collections;
 import java.util.Set;
 
 public class UsernamePasswordAuthentication implements Authentication {
+
     private final String username;
     private final String password;
     private boolean authenticated = false;
+    private final Set<String> authorities;
 
     private UsernamePasswordAuthentication(String username, String password) {
-        this.username = username;
-        this.password = password;
+        this(username, password, Set.of());
     }
 
-    public static UsernamePasswordAuthentication ofAuthenticated(String username, String password) {
-        UsernamePasswordAuthentication authentication = new UsernamePasswordAuthentication(username, password);
+    public UsernamePasswordAuthentication(
+        String username,
+        String password,
+        Set<String> authorities
+    ) {
+        this.username = username;
+        this.password = password;
+        this.authorities = authorities;
+    }
+
+    public static UsernamePasswordAuthentication ofAuthenticated(
+        String username,
+        String password,
+        Set<String> authorities
+    ) {
+        UsernamePasswordAuthentication authentication = new UsernamePasswordAuthentication(
+            username,
+            password,
+            authorities
+        );
         authentication.authenticated = true;
         return authentication;
     }
@@ -35,7 +53,7 @@ public class UsernamePasswordAuthentication implements Authentication {
 
     @Override
     public Set<String> getAuthorities() {
-        return Collections.emptySet();
+        return authorities;
     }
 
     @Override
