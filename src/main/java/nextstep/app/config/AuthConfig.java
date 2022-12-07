@@ -6,6 +6,7 @@ import nextstep.security.authentication.BasicAuthenticationFilter;
 import nextstep.security.authentication.UsernamePasswordAuthenticationFilter;
 import nextstep.security.authentication.UsernamePasswordAuthenticationProvider;
 import nextstep.security.authorization.AuthorizationFilter;
+import nextstep.security.authorization.RoleManager;
 import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.FilterChainProxy;
 import nextstep.security.config.SecurityFilterChain;
@@ -74,7 +75,7 @@ public class AuthConfig implements WebMvcConfigurer {
                 authenticationManager,
                 securityContextRepository
             ),
-            new AuthorizationFilter(securityContextRepository)
+            new AuthorizationFilter(securityContextRepository, new RoleManager("ADMIN"))
         );
     }
 

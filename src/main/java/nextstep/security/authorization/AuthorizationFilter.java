@@ -16,9 +16,11 @@ import org.springframework.web.filter.GenericFilterBean;
 public class AuthorizationFilter extends GenericFilterBean {
 
     private final SecurityContextRepository securityContextRepository;
+    private final RoleManager roleManager;
 
-    public AuthorizationFilter(SecurityContextRepository securityContextRepository) {
+    public AuthorizationFilter(SecurityContextRepository securityContextRepository, RoleManager roleManager) {
         this.securityContextRepository = securityContextRepository;
+        this.roleManager = roleManager;
     }
 
     @Override
@@ -29,7 +31,7 @@ public class AuthorizationFilter extends GenericFilterBean {
     ) throws IOException, ServletException {
         try {
             final SecurityContext context = securityContextRepository.loadContext((HttpServletRequest) request);
-            if (!context.getAuthentication().getAuthorities().contains("ADMIN")) {
+            if (context.getAuthentication().getAuthorities().stream().noneMatch(roleManager::hasRole)) {
                 throw new AuthorizationException();
             }
         } catch (AuthorizationException e) {
