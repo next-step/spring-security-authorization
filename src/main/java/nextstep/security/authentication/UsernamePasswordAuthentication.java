@@ -31,8 +31,8 @@ public class UsernamePasswordAuthentication implements Authentication {
             String username,
             String password
     ) {
-        Set<String> defaultAuthorites = Set.of();
-        return new UsernamePasswordAuthentication(username, password, defaultAuthorites);
+        Set<String> defaultAuthorities = Set.of();
+        return new UsernamePasswordAuthentication(username, password, defaultAuthorities);
     }
 
     @Override
