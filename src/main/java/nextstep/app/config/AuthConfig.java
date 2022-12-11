@@ -67,7 +67,7 @@ public class AuthConfig implements WebMvcConfigurer {
 
         List<Filter> filters = new ArrayList<>();
         filters.add(new BasicAuthenticationFilter(authenticationManager()));
-        filters.add(new AuthorizationFilter(ROLE_NAME));
+        filters.add(new AuthorizationFilter(ROLE_NAME, securityContextRepository()));
 
         return new DefaultSecurityFilterChain(MEMBERS_REQUEST_MATCHER, filters);
     }
