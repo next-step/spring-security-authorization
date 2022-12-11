@@ -34,8 +34,8 @@ public class MemberTest {
     private MockMvc mockMvc;
 
     @Test
-    void request_success_with_admin_user() throws Exception {
-        ResultActions response = requestWithBasicAuthAndSession(
+    void members_request_success_with_admin_user() throws Exception {
+        ResultActions response = requestMembersWithBasicAuthAndSession(
                 TEST_ADMIN_MEMBER.getEmail(), TEST_ADMIN_MEMBER.getPassword(), TEST_ADMIN_MEMBER.getRoles()
         );
 
@@ -48,8 +48,8 @@ public class MemberTest {
     }
 
     @Test
-    void request_fail_with_general_user() throws Exception {
-        ResultActions response = requestWithBasicAuthAndSession(
+    void members_request_fail_with_general_user() throws Exception {
+        ResultActions response = requestMembersWithBasicAuthAndSession(
                 TEST_USER_MEMBER.getEmail(), TEST_USER_MEMBER.getPassword(), TEST_USER_MEMBER.getRoles()
         );
 
@@ -61,26 +61,58 @@ public class MemberTest {
     }
 
     @Test
-    void request_fail_with_no_user() throws Exception {
-        ResultActions response = requestWithBasicAuthAndSession("none", "none", Collections.emptySet());
+    void members_request_fail_with_no_user() throws Exception {
+        ResultActions response = requestMembersWithBasicAuthAndSession("none", "none", Collections.emptySet());
 
         response.andExpect(status().isUnauthorized());
     }
 
     @Test
-    void request_fail_invalid_password() throws Exception {
-        ResultActions response = requestWithBasicAuthAndSession(TEST_ADMIN_MEMBER.getEmail(), "invalid", Collections.emptySet());
+    void members_request_fail_invalid_password() throws Exception {
+        ResultActions response = requestMembersWithBasicAuthAndSession(TEST_ADMIN_MEMBER.getEmail(), "invalid", Collections.emptySet());
 
         response.andExpect(status().isUnauthorized());
     }
 
-    private ResultActions requestWithBasicAuthAndSession(String username, String password, Set<String> roles) throws Exception {
+    @Test
+    void members_me_request_success() throws Exception {
+        ResultActions response = requestMembersMeWithBasicAuthAndSession(
+                TEST_USER_MEMBER.getEmail(), TEST_ADMIN_MEMBER.getPassword(), TEST_ADMIN_MEMBER.getRoles()
+        );
+
+        response.andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.email").value(TEST_USER_MEMBER.getEmail()));
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        assertThat(authentication.isAuthenticated()).isTrue();
+    }
+
+    @Test
+    void members_me_request_fail() throws Exception {
+        ResultActions response = requestMembersMeWithBasicAuthAndSession(
+                TEST_USER_MEMBER.getEmail(), "invalid", Collections.emptySet()
+        );
+
+        response.andExpect(status().isUnauthorized());
+    }
+
+    private ResultActions requestMembersWithBasicAuthAndSession(String username, String password, Set<String> roles) throws Exception {
         String token = Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
 
         return mockMvc.perform(get("/members")
                         .header("Authorization", "Basic " + token)
                         .session(getLoginSession(username, password, roles))
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+    }
+
+    private ResultActions requestMembersMeWithBasicAuthAndSession(String username, String password, Set<String> roles) throws Exception {
+        String token = Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
+
+        return mockMvc.perform(get("/members/me")
+                .header("Authorization", "Basic " + token)
+                .session(getLoginSession(username, password, roles))
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         );
     }
 

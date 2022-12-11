@@ -36,7 +36,7 @@ public class AuthConfig implements WebMvcConfigurer {
 
     @Bean
     public FilterChainProxy filterChainProxy() {
-        return new FilterChainProxy(List.of(loginSecurityFilterChain(), membersSecurityFilterChain()));
+        return new FilterChainProxy(List.of(loginSecurityFilterChain(), membersSecurityFilterChain(), sessionSecurityFilterChain()));
     }
 
     @Bean
@@ -53,6 +53,14 @@ public class AuthConfig implements WebMvcConfigurer {
         filters.add(new SessionAuthorizationFilter(securityContextRepository()));
         filters.add(new RoleAuthorizationFilter());
         return new DefaultSecurityFilterChain(new MvcRequestMatcher(HttpMethod.GET, "/members"), filters);
+    }
+
+    @Bean
+    public SecurityFilterChain sessionSecurityFilterChain() {
+        List<Filter> filters = new ArrayList<>();
+        filters.add(new BasicAuthenticationFilter(authenticationManager()));
+        filters.add(new SessionAuthorizationFilter(securityContextRepository()));
+        return new DefaultSecurityFilterChain(new MvcRequestMatcher(HttpMethod.GET, "/members/me"), filters);
     }
 
     @Bean

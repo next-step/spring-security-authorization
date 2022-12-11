@@ -1,11 +1,9 @@
 package nextstep.security.authorization;
 
-import nextstep.security.access.matcher.MvcRequestMatcher;
 import nextstep.security.context.SecurityContext;
 import nextstep.security.context.SecurityContextHolder;
 import nextstep.security.context.SecurityContextRepository;
 import nextstep.security.exception.AuthenticationException;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.filter.GenericFilterBean;
 
@@ -18,8 +16,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public class SessionAuthorizationFilter extends GenericFilterBean {
-    private static final MvcRequestMatcher DEFAULT_REQUEST_MATCHER = new MvcRequestMatcher(HttpMethod.GET,
-            "/members");
 
     private final SecurityContextRepository securityContextRepository;
 
@@ -30,11 +26,6 @@ public class SessionAuthorizationFilter extends GenericFilterBean {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         try {
-            if (!DEFAULT_REQUEST_MATCHER.matches((HttpServletRequest) request)) {
-                chain.doFilter(request, response);
-                return;
-            }
-
             SecurityContext loadedContext = securityContextRepository.loadContext((HttpServletRequest) request);
             if (loadedContext == null) {
                 ((HttpServletResponse) response).sendError(HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN.getReasonPhrase());

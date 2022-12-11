@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
@@ -25,4 +26,11 @@ public class MemberController {
         return ResponseEntity.ok(members);
     }
 
+    @GetMapping("/members/me")
+    public ResponseEntity<Member> me(HttpServletRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getPrincipal().toString();
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        return ResponseEntity.ok(member);
+    }
 }
