@@ -4,6 +4,7 @@ import nextstep.security.access.matcher.MvcRequestMatcher;
 import nextstep.security.authentication.*;
 import nextstep.security.authorization.SessionAuthorizationFilter;
 import nextstep.security.authorization.RoleAuthorizationFilter;
+import nextstep.security.config.AuthorizeRequestMatcherRegistry;
 import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.FilterChainProxy;
 import nextstep.security.config.SecurityFilterChain;
@@ -30,13 +31,22 @@ public class AuthConfig implements WebMvcConfigurer {
     }
 
     @Bean
+    public AuthorizeRequestMatcherRegistry requestMatcherRegistryMapping() {
+        AuthorizeRequestMatcherRegistry requestMatcherRegistry = new AuthorizeRequestMatcherRegistry();
+        requestMatcherRegistry
+                .matcher(new MvcRequestMatcher(HttpMethod.GET, "/members")).hasAuthority("ADMIN")
+                .matcher(new MvcRequestMatcher(HttpMethod.GET, "/members/me")).authenticated();
+        return requestMatcherRegistry;
+    }
+
+    @Bean
     public DelegatingFilterProxy securityFilterChainProxy() {
         return new DelegatingFilterProxy("filterChainProxy");
     }
 
     @Bean
     public FilterChainProxy filterChainProxy() {
-        return new FilterChainProxy(List.of(loginSecurityFilterChain(), membersSecurityFilterChain(), sessionSecurityFilterChain()));
+        return new FilterChainProxy(List.of(loginSecurityFilterChain(), membersSecurityFilterChain()));
     }
 
     @Bean
@@ -50,17 +60,9 @@ public class AuthConfig implements WebMvcConfigurer {
     public SecurityFilterChain membersSecurityFilterChain() {
         List<Filter> filters = new ArrayList<>();
         filters.add(new BasicAuthenticationFilter(authenticationManager()));
-        filters.add(new SessionAuthorizationFilter(securityContextRepository()));
-        filters.add(new RoleAuthorizationFilter());
+        filters.add(new SessionAuthorizationFilter(securityContextRepository(), requestMatcherRegistryMapping()));
+        filters.add(new RoleAuthorizationFilter(requestMatcherRegistryMapping()));
         return new DefaultSecurityFilterChain(new MvcRequestMatcher(HttpMethod.GET, "/members"), filters);
-    }
-
-    @Bean
-    public SecurityFilterChain sessionSecurityFilterChain() {
-        List<Filter> filters = new ArrayList<>();
-        filters.add(new BasicAuthenticationFilter(authenticationManager()));
-        filters.add(new SessionAuthorizationFilter(securityContextRepository()));
-        return new DefaultSecurityFilterChain(new MvcRequestMatcher(HttpMethod.GET, "/members/me"), filters);
     }
 
     @Bean
@@ -72,5 +74,4 @@ public class AuthConfig implements WebMvcConfigurer {
     public AuthenticationManager authenticationManager() {
         return new AuthenticationManager(new UsernamePasswordAuthenticationProvider(userDetailsService));
     }
-
 }

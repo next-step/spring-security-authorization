@@ -28,6 +28,6 @@ public class MvcRequestMatcher implements RequestMatcher {
             return false;
         }
 
-        return request.getRequestURI().equals(pattern);
+        return request.getRequestURI().contains(pattern) || request.getRequestURI().startsWith(pattern);
     }
 }

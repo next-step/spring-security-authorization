@@ -1,5 +1,6 @@
 package nextstep.security.authorization;
 
+import nextstep.security.config.AuthorizeRequestMatcherRegistry;
 import nextstep.security.context.SecurityContext;
 import nextstep.security.context.SecurityContextHolder;
 import nextstep.security.context.SecurityContextRepository;
@@ -19,22 +20,29 @@ public class SessionAuthorizationFilter extends GenericFilterBean {
 
     private final SecurityContextRepository securityContextRepository;
 
-    public SessionAuthorizationFilter(SecurityContextRepository securityContextRepository) {
+    private final AuthorizeRequestMatcherRegistry requestMatcherRegistry;
+
+    public SessionAuthorizationFilter(SecurityContextRepository securityContextRepository, AuthorizeRequestMatcherRegistry requestMatcherRegistry) {
         this.securityContextRepository = securityContextRepository;
+        this.requestMatcherRegistry = requestMatcherRegistry;
     }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         try {
+            String attribute = requestMatcherRegistry.getAttribute((HttpServletRequest) request);
             SecurityContext loadedContext = securityContextRepository.loadContext((HttpServletRequest) request);
             if (loadedContext == null) {
                 ((HttpServletResponse) response).sendError(HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN.getReasonPhrase());
                 return;
             }
+            boolean isAuthorized = requestMatcherRegistry.isAuthorized(attribute, loadedContext.getAuthentication());
 
-            SecurityContext context = SecurityContextHolder.createEmptyContext();
-            context.setAuthentication(loadedContext.getAuthentication());
-            SecurityContextHolder.setContext(context);
+            if (isAuthorized) {
+                SecurityContext context = SecurityContextHolder.createEmptyContext();
+                context.setAuthentication(loadedContext.getAuthentication());
+                SecurityContextHolder.setContext(context);
+            }
         } catch (AuthenticationException e) {
             ((HttpServletResponse) response).sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
             return;

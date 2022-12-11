@@ -53,7 +53,7 @@ public class MemberTest {
                 TEST_USER_MEMBER.getEmail(), TEST_USER_MEMBER.getPassword(), TEST_USER_MEMBER.getRoles()
         );
 
-         response.andExpect(status().isForbidden());
+        response.andExpect(status().isForbidden());
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         assertThat(authentication.isAuthenticated()).isTrue();
