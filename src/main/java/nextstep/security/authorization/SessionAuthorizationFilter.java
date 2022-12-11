@@ -17,13 +17,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-public class LoginAuthorizationFilter extends GenericFilterBean {
+public class SessionAuthorizationFilter extends GenericFilterBean {
     private static final MvcRequestMatcher DEFAULT_REQUEST_MATCHER = new MvcRequestMatcher(HttpMethod.GET,
             "/members");
 
     private final SecurityContextRepository securityContextRepository;
 
-    public LoginAuthorizationFilter(SecurityContextRepository securityContextRepository) {
+    public SessionAuthorizationFilter(SecurityContextRepository securityContextRepository) {
         this.securityContextRepository = securityContextRepository;
     }
 
