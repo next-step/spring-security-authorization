@@ -25,4 +25,11 @@ public class MemberController {
         return ResponseEntity.ok(members);
     }
 
+    @GetMapping("/members/me")
+    public ResponseEntity<Member> me() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getPrincipal().toString();
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        return ResponseEntity.ok(member);
+    }
 }
