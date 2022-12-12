@@ -9,9 +9,12 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import nextstep.security.authentication.Authentication;
+import nextstep.security.config.AuthorizeRequestMatcherRegistry;
+import nextstep.security.config.AuthorizeRequestMatcherRegistry.AuthorizedUrl;
 import nextstep.security.context.SecurityContext;
 import nextstep.security.context.SecurityContextHolder;
 import nextstep.security.context.SecurityContextRepository;
+import nextstep.security.exception.AccessDeniedException;
 import nextstep.security.exception.AuthenticationException;
 import nextstep.security.exception.AuthorizationException;
 import org.springframework.http.HttpStatus;
@@ -20,11 +23,14 @@ import org.springframework.web.filter.GenericFilterBean;
 public class AuthorizationFilter extends GenericFilterBean {
 
     private final SecurityContextRepository securityContextRepository;
-    private final RoleManager roleManager;
+    private final AuthorizeRequestMatcherRegistry authorizeRequestMatcherRegistry;
 
-    public AuthorizationFilter(SecurityContextRepository securityContextRepository, RoleManager roleManager) {
+    public AuthorizationFilter(
+        SecurityContextRepository securityContextRepository,
+        AuthorizeRequestMatcherRegistry authorizeRequestMatcherRegistry
+    ) {
         this.securityContextRepository = securityContextRepository;
-        this.roleManager = roleManager;
+        this.authorizeRequestMatcherRegistry = authorizeRequestMatcherRegistry;
     }
 
     @Override
@@ -36,11 +42,18 @@ public class AuthorizationFilter extends GenericFilterBean {
         preAuthorization((HttpServletRequest) request);
         try {
             final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication == null) {
-                throw new AuthenticationException();
-            }
 
-            if (authentication.getAuthorities().stream().noneMatch(roleManager::hasRole)) {
+            final String attribute = authorizeRequestMatcherRegistry.getAttribute((HttpServletRequest) request);
+            if (attribute == null || AuthorizedUrl.PERMIT_ALL.equals(attribute)) {
+                chain.doFilter(request, response);
+                return;
+            } else if (AuthorizedUrl.DENY_ALL.equals(attribute)) {
+                throw new AccessDeniedException();
+            } else if (AuthorizedUrl.AUTHENTICATED.equals(attribute)) {
+                if (authentication == null) {
+                    throw new AuthenticationException();
+                }
+            } else if (authentication.getAuthorities().stream().noneMatch(it -> attribute.contains(it))) {
                 throw new AuthorizationException();
             }
         } catch (AuthenticationException e) {
@@ -53,6 +66,12 @@ public class AuthorizationFilter extends GenericFilterBean {
             ((HttpServletResponse) response).sendError(
                 HttpStatus.FORBIDDEN.value(),
                 HttpStatus.FORBIDDEN.getReasonPhrase()
+            );
+            return;
+        } catch (AccessDeniedException e) {
+            ((HttpServletResponse) response).sendError(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase()
             );
             return;
         }
