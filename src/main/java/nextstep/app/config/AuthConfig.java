@@ -7,6 +7,7 @@ import nextstep.security.authentication.BasicAuthenticationFilter;
 import nextstep.security.authentication.UsernamePasswordAuthenticationFilter;
 import nextstep.security.authentication.UsernamePasswordAuthenticationProvider;
 import nextstep.security.authorization.AuthorizationFilter;
+import nextstep.security.authorization.PreAuthorizationFilter;
 import nextstep.security.config.AuthorizationSecurityFilterChain;
 import nextstep.security.config.AuthorizeRequestMatcherRegistry;
 import nextstep.security.config.FilterChainProxy;
@@ -53,8 +54,8 @@ public class AuthConfig implements WebMvcConfigurer {
                 authenticationManager,
                 securityContextRepository
             ),
+            new PreAuthorizationFilter(securityContextRepository),
             new AuthorizationFilter(
-                securityContextRepository,
                 new AuthorizeRequestMatcherRegistry()
                     .matcher(new MvcRequestMatcher(HttpMethod.GET, "/members")).hasAuthority("ADMIN")
                     .matcher(new MvcRequestMatcher(HttpMethod.GET, "/members/me")).authenticated()

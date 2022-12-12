@@ -1,7 +1,6 @@
 package nextstep.security.authorization;
 
 import java.io.IOException;
-import java.util.Optional;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -11,9 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import nextstep.security.authentication.Authentication;
 import nextstep.security.config.AuthorizeRequestMatcherRegistry;
 import nextstep.security.config.AuthorizeRequestMatcherRegistry.AuthorizedUrl;
-import nextstep.security.context.SecurityContext;
 import nextstep.security.context.SecurityContextHolder;
-import nextstep.security.context.SecurityContextRepository;
 import nextstep.security.exception.AccessDeniedException;
 import nextstep.security.exception.AuthenticationException;
 import nextstep.security.exception.AuthorizationException;
@@ -22,14 +19,9 @@ import org.springframework.web.filter.GenericFilterBean;
 
 public class AuthorizationFilter extends GenericFilterBean {
 
-    private final SecurityContextRepository securityContextRepository;
     private final AuthorizeRequestMatcherRegistry authorizeRequestMatcherRegistry;
 
-    public AuthorizationFilter(
-        SecurityContextRepository securityContextRepository,
-        AuthorizeRequestMatcherRegistry authorizeRequestMatcherRegistry
-    ) {
-        this.securityContextRepository = securityContextRepository;
+    public AuthorizationFilter(AuthorizeRequestMatcherRegistry authorizeRequestMatcherRegistry) {
         this.authorizeRequestMatcherRegistry = authorizeRequestMatcherRegistry;
     }
 
@@ -39,7 +31,6 @@ public class AuthorizationFilter extends GenericFilterBean {
         ServletResponse response,
         FilterChain chain
     ) throws IOException, ServletException {
-        preAuthorization((HttpServletRequest) request);
         try {
             final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -77,16 +68,5 @@ public class AuthorizationFilter extends GenericFilterBean {
         }
 
         chain.doFilter(request, response);
-    }
-
-    private void preAuthorization(HttpServletRequest request) {
-        final SecurityContext context = (SecurityContext) request.getSession().getAttribute(
-            SecurityContextHolder.SPRING_SECURITY_CONTEXT_KEY
-        );
-
-        final Authentication authentication = Optional.ofNullable(context)
-            .map(SecurityContext::getAuthentication)
-            .orElseGet(() -> securityContextRepository.loadContext(request).getAuthentication());
-        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 }
