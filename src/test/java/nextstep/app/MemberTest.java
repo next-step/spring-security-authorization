@@ -1,10 +1,9 @@
 package nextstep.app;
 
-import nextstep.security.authentication.Authentication;
-import nextstep.security.authentication.Role;
-import nextstep.security.context.SecurityContextHolder;
 import nextstep.app.domain.Member;
 import nextstep.app.infrastructure.InMemoryMemberRepository;
+import nextstep.security.authentication.Role;
+import nextstep.security.context.SecurityContextHolder;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -22,7 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class MemberTest {
+class MemberTest {
     private static final Member TEST_ADMIN_MEMBER = InMemoryMemberRepository.ADMIN_MEMBER;
     private static final Member TEST_USER_MEMBER = InMemoryMemberRepository.USER_MEMBER;
 
@@ -31,43 +30,43 @@ public class MemberTest {
 
     @Test
     void request_success_with_admin_user() throws Exception {
-        ResultActions response = requestWithBasicAuth(TEST_ADMIN_MEMBER.getEmail(), TEST_ADMIN_MEMBER.getPassword());
+        final var response = requestWithBasicAuth(TEST_ADMIN_MEMBER.getEmail(), TEST_ADMIN_MEMBER.getPassword());
 
         response.andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(2));
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final var authentication = SecurityContextHolder.getContext().getAuthentication();
         assertThat(authentication.isAuthenticated()).isTrue();
         assertThat(authentication.getAuthorities()).contains(Role.ADMIN.name());
     }
 
     @Test
     void request_fail_with_general_user() throws Exception {
-        ResultActions response = requestWithBasicAuth(TEST_USER_MEMBER.getEmail(), TEST_USER_MEMBER.getPassword());
+        final var response = requestWithBasicAuth(TEST_USER_MEMBER.getEmail(), TEST_USER_MEMBER.getPassword());
 
         response.andExpect(status().isForbidden());
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final var authentication = SecurityContextHolder.getContext().getAuthentication();
         assertThat(authentication.isAuthenticated()).isTrue();
         assertThat(authentication.getAuthorities()).isEmpty();
     }
 
     @Test
     void request_fail_with_no_user() throws Exception {
-        ResultActions response = requestWithBasicAuth("none", "none");
+        final var response = requestWithBasicAuth("none", "none");
 
         response.andExpect(status().isUnauthorized());
     }
 
     @Test
     void request_fail_invalid_password() throws Exception {
-        ResultActions response = requestWithBasicAuth(TEST_ADMIN_MEMBER.getEmail(), "invalid");
+        final var response = requestWithBasicAuth(TEST_ADMIN_MEMBER.getEmail(), "invalid");
 
         response.andExpect(status().isUnauthorized());
     }
 
     private ResultActions requestWithBasicAuth(String username, String password) throws Exception {
-        String token = Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
+        final var token = Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
 
         return mockMvc.perform(get("/members")
                         .header("Authorization", "Basic " + token)
