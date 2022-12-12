@@ -1,25 +1,29 @@
 package nextstep.security.config;
 
-import nextstep.security.access.matcher.RequestMatcher;
-
-import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import nextstep.security.access.matcher.RequestMatcher;
+import nextstep.security.authorization.manager.AuthenticationRoleManager;
+import nextstep.security.authorization.manager.AuthorizationRoleManager;
+import nextstep.security.authorization.manager.DenyAllRoleManager;
+import nextstep.security.authorization.manager.PermitAllRoleManager;
+import nextstep.security.authorization.manager.RoleManager;
 
 public class AuthorizeRequestMatcherRegistry {
-    private final Map<RequestMatcher, String> mappings = new HashMap<>();
+    private final Map<RequestMatcher, RoleManager> mappings = new HashMap<>();
 
     public AuthorizedUrl matcher(RequestMatcher requestMatcher) {
         return new AuthorizedUrl(requestMatcher);
     }
 
-    AuthorizeRequestMatcherRegistry addMapping(RequestMatcher requestMatcher, String attributes) {
-        mappings.put(requestMatcher, attributes);
+    AuthorizeRequestMatcherRegistry addMapping(RequestMatcher requestMatcher, RoleManager roleManager) {
+        mappings.put(requestMatcher, roleManager);
         return this;
     }
 
-    public String getAttribute(HttpServletRequest request) {
-        for (Map.Entry<RequestMatcher, String> entry : mappings.entrySet()) {
+    public RoleManager getRoleManager(HttpServletRequest request) {
+        for (var entry : mappings.entrySet()) {
             if (entry.getKey().matches(request)) {
                 return entry.getValue();
             }
@@ -39,23 +43,23 @@ public class AuthorizeRequestMatcherRegistry {
         }
 
         public AuthorizeRequestMatcherRegistry permitAll() {
-            return access(PERMIT_ALL);
+            return access(new PermitAllRoleManager());
         }
 
         public AuthorizeRequestMatcherRegistry denyAll() {
-            return access(DENY_ALL);
+            return access(new DenyAllRoleManager());
         }
 
-        public AuthorizeRequestMatcherRegistry hasAuthority(String authority) {
-            return access("hasAuthority(" + authority + ")");
+        public AuthorizeRequestMatcherRegistry hasAuthority(String... authorities) {
+            return access(new AuthorizationRoleManager(authorities));
         }
 
         public AuthorizeRequestMatcherRegistry authenticated() {
-            return access(AUTHENTICATED);
+            return access(new AuthenticationRoleManager());
         }
 
-        private AuthorizeRequestMatcherRegistry access(String attribute) {
-            return addMapping(requestMatcher, attribute);
+        private AuthorizeRequestMatcherRegistry access(RoleManager roleManager) {
+            return addMapping(requestMatcher, roleManager);
         }
     }
 

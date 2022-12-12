@@ -1,6 +1,7 @@
 package nextstep.security.authorization;
 
 import java.io.IOException;
+import java.util.Optional;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -8,8 +9,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import nextstep.security.authentication.Authentication;
+import nextstep.security.authorization.manager.RoleManager;
 import nextstep.security.config.AuthorizeRequestMatcherRegistry;
-import nextstep.security.config.AuthorizeRequestMatcherRegistry.AuthorizedUrl;
 import nextstep.security.context.SecurityContextHolder;
 import nextstep.security.exception.AccessDeniedException;
 import nextstep.security.exception.AuthenticationException;
@@ -32,19 +33,21 @@ public class AuthorizationFilter extends GenericFilterBean {
         FilterChain chain
     ) throws IOException, ServletException {
         try {
-            final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            final Authentication authentication = Optional.ofNullable(
+                SecurityContextHolder
+                    .getContext()
+                    .getAuthentication()
+            ).orElseThrow(AuthenticationException::new);
 
-            final String attribute = authorizeRequestMatcherRegistry.getAttribute((HttpServletRequest) request);
-            if (attribute == null || AuthorizedUrl.PERMIT_ALL.equals(attribute)) {
+            final RoleManager roleManager = authorizeRequestMatcherRegistry.getRoleManager((HttpServletRequest) request);
+
+            if (roleManager == null) {
                 chain.doFilter(request, response);
                 return;
-            } else if (AuthorizedUrl.DENY_ALL.equals(attribute)) {
-                throw new AccessDeniedException();
-            } else if (AuthorizedUrl.AUTHENTICATED.equals(attribute)) {
-                if (authentication == null) {
-                    throw new AuthenticationException();
-                }
-            } else if (authentication.getAuthorities().stream().noneMatch(it -> attribute.contains(it))) {
+            }
+
+
+            if (!roleManager.check(authentication)) {
                 throw new AuthorizationException();
             }
         } catch (AuthenticationException e) {
