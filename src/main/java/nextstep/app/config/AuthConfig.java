@@ -73,4 +73,8 @@ public class AuthConfig implements WebMvcConfigurer {
         return new AuthenticationManager(new UsernamePasswordAuthenticationProvider(userDetailsService));
     }
 
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        resolvers.add(new LoginUserArgumentResolver());
+    }
 }
