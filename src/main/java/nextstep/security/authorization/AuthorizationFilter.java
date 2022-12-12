@@ -12,7 +12,6 @@ import nextstep.security.authentication.Authentication;
 import nextstep.security.authorization.manager.RoleManager;
 import nextstep.security.config.AuthorizeRequestMatcherRegistry;
 import nextstep.security.context.SecurityContextHolder;
-import nextstep.security.exception.AccessDeniedException;
 import nextstep.security.exception.AuthenticationException;
 import nextstep.security.exception.AuthorizationException;
 import org.springframework.http.HttpStatus;
@@ -42,7 +41,6 @@ public class AuthorizationFilter extends GenericFilterBean {
             final RoleManager roleManager = authorizeRequestMatcherRegistry.getRoleManager((HttpServletRequest) request);
 
             if (roleManager == null) {
-                chain.doFilter(request, response);
                 return;
             }
 
@@ -60,12 +58,6 @@ public class AuthorizationFilter extends GenericFilterBean {
             ((HttpServletResponse) response).sendError(
                 HttpStatus.FORBIDDEN.value(),
                 HttpStatus.FORBIDDEN.getReasonPhrase()
-            );
-            return;
-        } catch (AccessDeniedException e) {
-            ((HttpServletResponse) response).sendError(
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase()
             );
             return;
         }
