@@ -10,4 +10,6 @@ public interface Authentication {
     Set<String> getAuthorities();
 
     boolean isAuthenticated();
+
+    boolean isAdmin();
 }

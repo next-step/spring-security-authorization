@@ -47,4 +47,8 @@ public class UsernamePasswordAuthentication implements Authentication {
         return authenticated;
     }
 
+    public boolean isAdmin() {
+        return getAuthorities()
+                .contains("ADMIN");
+    }
 }

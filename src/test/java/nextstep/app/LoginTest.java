@@ -1,9 +1,8 @@
 package nextstep.app;
 
-import nextstep.security.authentication.Authentication;
-import nextstep.security.context.SecurityContextHolder;
 import nextstep.app.domain.Member;
 import nextstep.app.infrastructure.InMemoryMemberRepository;
+import nextstep.security.context.SecurityContextHolder;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -18,7 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class LoginTest {
+class LoginTest {
     private static final Member TEST_MEMBER = InMemoryMemberRepository.ADMIN_MEMBER;
 
     @Autowired
@@ -26,23 +25,23 @@ public class LoginTest {
 
     @Test
     void login_success() throws Exception {
-        ResultActions loginResponse = requestLoginWith(TEST_MEMBER.getEmail(), TEST_MEMBER.getPassword());
+        final var loginResponse = requestLoginWith(TEST_MEMBER.getEmail(), TEST_MEMBER.getPassword());
         loginResponse.andExpect(status().isOk());
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final var authentication = SecurityContextHolder.getContext().getAuthentication();
         assertThat(authentication.isAuthenticated()).isTrue();
     }
 
     @Test
     void login_fail_with_no_user() throws Exception {
-        ResultActions response = requestLoginWith("none", "none");
+        final var response = requestLoginWith("none", "none");
 
         response.andExpect(status().isUnauthorized());
     }
 
     @Test
     void login_fail_with_invalid_password() throws Exception {
-        ResultActions response = requestLoginWith(TEST_MEMBER.getEmail(), "invalid");
+        final var response = requestLoginWith(TEST_MEMBER.getEmail(), "invalid");
 
         response.andExpect(status().isUnauthorized());
     }
