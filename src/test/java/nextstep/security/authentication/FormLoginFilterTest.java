@@ -7,7 +7,6 @@ import nextstep.security.context.SecurityContextHolder;
 import nextstep.security.fixture.MockFilterChain;
 import nextstep.security.fixture.TestUserDetailsService;
 import nextstep.security.fixture.TestUserInMemoryRepository;
-import nextstep.security.userdetails.UserDetailsService;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,15 +21,15 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class FormLoginFilterTest {
+class FormLoginFilterTest {
     private static final Member TEST_MEMBER = InMemoryMemberRepository.ADMIN_MEMBER;
     private UsernamePasswordAuthenticationFilter filter;
 
     @BeforeEach
     void setUp() {
-        UserDetailsService userDetailsService = new TestUserDetailsService(new TestUserInMemoryRepository());
-        AuthenticationProvider provider = new UsernamePasswordAuthenticationProvider(userDetailsService);
-        AuthenticationManager authenticationManager = new AuthenticationManager(provider);
+        final var userDetailsService = new TestUserDetailsService(new TestUserInMemoryRepository());
+        final var provider = new UsernamePasswordAuthenticationProvider(userDetailsService);
+        final var authenticationManager = new AuthenticationManager(provider);
         filter = new UsernamePasswordAuthenticationFilter(authenticationManager, new HttpSessionSecurityContextRepository());
     }
 

@@ -1,11 +1,9 @@
 package nextstep.security.authentication;
 
 import nextstep.security.access.matcher.MvcRequestMatcher;
-import nextstep.security.context.SecurityContext;
 import nextstep.security.context.SecurityContextHolder;
 import nextstep.security.context.SecurityContextRepository;
 import nextstep.security.exception.AuthenticationException;
-import nextstep.security.exception.AuthorizationException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.filter.GenericFilterBean;
@@ -20,21 +18,24 @@ import java.io.IOException;
 
 public class UsernamePasswordAuthenticationFilter extends GenericFilterBean {
 
+    private static final MvcRequestMatcher DEFAULT_REQUEST_MATCHER = new MvcRequestMatcher(HttpMethod.POST, "/login");
+
     private final AuthenticationManager authenticationManager;
     private final SecurityContextRepository securityContextRepository;
-    private static final MvcRequestMatcher DEFAULT_REQUEST_MATCHER = new MvcRequestMatcher(HttpMethod.POST,
-            "/login");
 
-    public UsernamePasswordAuthenticationFilter(AuthenticationManager authenticationManager, SecurityContextRepository securityContextRepository) {
+    public UsernamePasswordAuthenticationFilter(final AuthenticationManager authenticationManager,
+                                                final SecurityContextRepository securityContextRepository) {
         this.authenticationManager = authenticationManager;
         this.securityContextRepository = securityContextRepository;
     }
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+    public void doFilter(ServletRequest servletRequest, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+
+        final var request = (HttpServletRequest) servletRequest;
 
         try {
-            if (!DEFAULT_REQUEST_MATCHER.matches((HttpServletRequest) request)) {
+            if (!DEFAULT_REQUEST_MATCHER.matches(request)) {
                 chain.doFilter(request, response);
                 return;
             }
@@ -42,25 +43,18 @@ public class UsernamePasswordAuthenticationFilter extends GenericFilterBean {
             String username = request.getParameter("username");
             String password = request.getParameter("password");
 
-            UsernamePasswordAuthentication authRequest = UsernamePasswordAuthentication.ofRequest(username,
+            final var authRequest = UsernamePasswordAuthentication.ofRequest(username,
                     password);
-            Authentication authResult = authenticationManager.authenticate(authRequest);
+            final var authResult = authenticationManager.authenticate(authRequest);
 
-            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            final var context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(authResult);
             SecurityContextHolder.setContext(context);
 
-            securityContextRepository.saveContext(context, (HttpServletRequest) request, (HttpServletResponse) response);
-
-            if (authResult.getAuthorities().isEmpty()) {
-                throw new AuthorizationException();
-            }
+            securityContextRepository.saveContext(context, request, (HttpServletResponse) response);
         } catch (AuthenticationException e) {
             SecurityContextHolder.clearContext();
             ((HttpServletResponse) response).sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
-            return;
-        } catch (AuthorizationException e) {
-            ((HttpServletResponse) response).sendError(HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN.getReasonPhrase());
             return;
         }
 

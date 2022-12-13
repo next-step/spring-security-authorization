@@ -2,7 +2,6 @@ package nextstep.security.authentication;
 
 import nextstep.security.context.SecurityContextHolder;
 import nextstep.security.exception.AuthenticationException;
-import nextstep.security.exception.AuthorizationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.filter.GenericFilterBean;
 
@@ -21,7 +20,7 @@ public class BasicAuthenticationFilter extends GenericFilterBean {
 
     private final AuthenticationManager authenticationManager;
 
-    public BasicAuthenticationFilter(AuthenticationManager authenticationManager) {
+    public BasicAuthenticationFilter(final AuthenticationManager authenticationManager) {
         this.authenticationManager = authenticationManager;
     }
 
@@ -29,25 +28,18 @@ public class BasicAuthenticationFilter extends GenericFilterBean {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 
         try {
-            Authentication authRequest = convertAuthenticationRequest((HttpServletRequest) request);
+            final var authRequest = convertAuthenticationRequest((HttpServletRequest) request);
 
             if (authRequest == null) {
                 chain.doFilter(request, response);
                 return;
             }
 
-            Authentication authResult = authenticationManager.authenticate(authRequest);
+            final var authResult = authenticationManager.authenticate(authRequest);
             SecurityContextHolder.getContext().setAuthentication(authResult);
-
-            if (authResult.getAuthorities().isEmpty()) {
-                throw new AuthorizationException();
-            }
         } catch (AuthenticationException e) {
             SecurityContextHolder.clearContext();
             ((HttpServletResponse) response).sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
-            return;
-        } catch (AuthorizationException e) {
-            ((HttpServletResponse) response).sendError(HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN.getReasonPhrase());
             return;
         }
 
@@ -75,6 +67,4 @@ public class BasicAuthenticationFilter extends GenericFilterBean {
 
         return UsernamePasswordAuthentication.ofRequest(email, password);
     }
-
-
 }

@@ -6,7 +6,6 @@ import nextstep.security.context.SecurityContextHolder;
 import nextstep.security.fixture.MockFilterChain;
 import nextstep.security.fixture.TestUserDetailsService;
 import nextstep.security.fixture.TestUserInMemoryRepository;
-import nextstep.security.userdetails.UserDetailsService;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.AfterEach;
@@ -19,15 +18,15 @@ import java.util.Base64;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class BasicAuthenticationFilterTest {
+class BasicAuthenticationFilterTest {
     private static final Member TEST_MEMBER = InMemoryMemberRepository.ADMIN_MEMBER;
     private BasicAuthenticationFilter filter;
 
     @BeforeEach
     void setUp() {
-        UserDetailsService userDetailsService = new TestUserDetailsService(new TestUserInMemoryRepository());
-        AuthenticationProvider provider = new UsernamePasswordAuthenticationProvider(userDetailsService);
-        AuthenticationManager authenticationManager = new AuthenticationManager(provider);
+        final var userDetailsService = new TestUserDetailsService(new TestUserInMemoryRepository());
+        final var provider = new UsernamePasswordAuthenticationProvider(userDetailsService);
+        final var authenticationManager = new AuthenticationManager(provider);
         filter = new BasicAuthenticationFilter(authenticationManager);
     }
 
