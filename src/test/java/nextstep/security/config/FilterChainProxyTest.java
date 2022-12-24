@@ -1,20 +1,24 @@
 package nextstep.security.config;
 
-import nextstep.security.access.matcher.MvcRequestMatcher;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
+
+import java.io.IOException;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import nextstep.security.access.matcher.AnyRequestMatcher;
 import nextstep.security.fixture.MockFilterChain;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.web.MockHttpServletRequest;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.util.List;
+class FilterChainProxyTest {
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-public class FilterChainProxyTest {
     private FilterChainProxy filterChainProxy;
     private TestFilter loginTestFilter;
     private TestFilter membersTestFilter;
@@ -22,36 +26,37 @@ public class FilterChainProxyTest {
     @BeforeEach
     void setUp() {
         loginTestFilter = new TestFilter();
-        SecurityFilterChain loginFilterChain = new DefaultSecurityFilterChain(
-                new MvcRequestMatcher(HttpMethod.POST, "/login"),
-                List.of(loginTestFilter)
-        );
-
         membersTestFilter = new TestFilter();
-        SecurityFilterChain membersFilterChain = new DefaultSecurityFilterChain(
-                new MvcRequestMatcher(HttpMethod.GET, "/members"),
-                List.of(membersTestFilter)
-        );
 
-        filterChainProxy = new FilterChainProxy(List.of(loginFilterChain, membersFilterChain));
+        filterChainProxy = new FilterChainProxy(
+            new DefaultSecurityFilterChain(
+                AnyRequestMatcher.INSTANCE,
+                loginTestFilter,
+                membersTestFilter
+            )
+        );
     }
 
     @Test
     void login() throws ServletException, IOException {
         HttpServletRequest request = new MockHttpServletRequest(HttpMethod.POST.name(), "/login");
-        filterChainProxy.doFilter(request, null, null);
+        filterChainProxy.doFilter(request, null, new MockFilterChain());
 
-        assertThat(loginTestFilter.count).isEqualTo(1);
-        assertThat(membersTestFilter.count).isEqualTo(0);
+        assertAll(
+            () -> assertThat(loginTestFilter.count).isEqualTo(1),
+            () -> assertThat(membersTestFilter.count).isEqualTo(1)
+        );
     }
 
     @Test
     void members() throws ServletException, IOException {
         HttpServletRequest request = new MockHttpServletRequest(HttpMethod.GET.name(), "/members");
-        filterChainProxy.doFilter(request, null, null);
+        filterChainProxy.doFilter(request, null, new MockFilterChain());
 
-        assertThat(loginTestFilter.count).isEqualTo(0);
-        assertThat(membersTestFilter.count).isEqualTo(1);
+        assertAll(
+            () -> assertThat(loginTestFilter.count).isEqualTo(1),
+            () -> assertThat(membersTestFilter.count).isEqualTo(1)
+        );
     }
 
     @Test
@@ -59,17 +64,24 @@ public class FilterChainProxyTest {
         HttpServletRequest request = new MockHttpServletRequest(HttpMethod.GET.name(), "/test");
         filterChainProxy.doFilter(request, null, new MockFilterChain());
 
-
-        assertThat(loginTestFilter.count).isEqualTo(0);
-        assertThat(membersTestFilter.count).isEqualTo(0);
+        assertAll(
+            () -> assertThat(loginTestFilter.count).isEqualTo(1),
+            () -> assertThat(membersTestFilter.count).isEqualTo(1)
+        );
     }
 
     private static class TestFilter implements Filter {
+
         private int count = 0;
 
         @Override
-        public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        public void doFilter(
+            ServletRequest request,
+            ServletResponse response,
+            FilterChain chain
+        ) throws ServletException, IOException {
             count++;
+            chain.doFilter(request, response);
         }
     }
 }

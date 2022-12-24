@@ -57,6 +57,43 @@ public class MemberAcceptanceTest extends AcceptanceTest {
         assertThat(memberResponse.statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value());
     }
 
+    @DisplayName("인증된 사용자는 200 응답을 받고 members/me 조회가 가능하다.")
+    @Test
+    void get_me_after_form_login_user() {
+        final String loginEmail = USER.getEmail();
+        final ExtractableResponse<Response> loginResponse = 로그인(loginEmail, USER.getPassword());
+
+        ExtractableResponse<Response> memberResponse = RestAssured.given().log().all()
+            .cookies(loginResponse.cookies())
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .when()
+            .get("/members/me")
+            .then().log().all()
+            .extract();
+
+        assertAll(
+            () -> assertThat(memberResponse.statusCode()).isEqualTo(HttpStatus.OK.value()),
+            () -> {
+                Member me = memberResponse.as(Member.class);
+                assertThat(me.getEmail()).isEqualTo(loginEmail);
+            }
+        );
+    }
+
+    @DisplayName("인증되지 않은 사용자는 401 응답을 받고 members/me 조회가 불가능하다.")
+    @Test
+    void get_me_after_form_not_login_user() {
+
+        ExtractableResponse<Response> memberResponse = RestAssured.given().log().all()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .when()
+            .get("/members/me")
+            .then().log().all()
+            .extract();
+
+        assertThat(memberResponse.statusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+    }
+
     private ExtractableResponse<Response> 로그인(String username, String password) {
         return RestAssured.given().log().all()
             .formParams(Map.of(

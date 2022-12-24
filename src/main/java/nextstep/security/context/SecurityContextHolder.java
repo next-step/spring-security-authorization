@@ -1,7 +1,7 @@
 package nextstep.security.context;
 
 public class SecurityContextHolder {
-    public static final String SPRING_SECURITY_CONTEXT_KEY = "SECURITY_CONTEXT";
+    public static final String SPRING_SECURITY_CONTEXT_KEY = "SPRING_SECURITY_CONTEXT";
     private static final ThreadLocal<SecurityContext> contextHolder;
 
     static {
