@@ -1,8 +1,8 @@
 package nextstep.app.config;
 
-import javax.servlet.http.HttpServletRequest;
 import nextstep.app.ui.dto.LoginUser;
-import nextstep.security.context.SecurityContext;
+import nextstep.security.authentication.Authentication;
+import nextstep.security.context.SecurityContextHolder;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -23,9 +23,8 @@ public class LoginUserArgumentResolver implements HandlerMethodArgumentResolver 
         NativeWebRequest webRequest,
         WebDataBinderFactory binderFactory
     ) {
-        final HttpServletRequest request = (HttpServletRequest) webRequest.getNativeRequest();
-        final SecurityContext context = (SecurityContext) request.getSession().getAttribute("SPRING_SECURITY_CONTEXT");
-        final String email = context.getAuthentication().getPrincipal().toString();
+        final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final String email = authentication.getPrincipal().toString();
         return new LoginUser(email);
     }
 }

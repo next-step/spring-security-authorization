@@ -2,7 +2,7 @@ package nextstep.security.authorization.manager;
 
 import nextstep.security.authentication.Authentication;
 
-public class AuthenticationRoleManager implements RoleManager {
+public class AuthenticatedAuthorizationManager implements AuthorizationManager {
 
     @Override
     public boolean check(Authentication authentication) {

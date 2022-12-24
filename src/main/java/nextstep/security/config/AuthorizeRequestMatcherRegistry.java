@@ -4,25 +4,25 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import nextstep.security.access.matcher.RequestMatcher;
-import nextstep.security.authorization.manager.AuthenticationRoleManager;
-import nextstep.security.authorization.manager.AuthorizationRoleManager;
-import nextstep.security.authorization.manager.DenyAllRoleManager;
-import nextstep.security.authorization.manager.PermitAllRoleManager;
-import nextstep.security.authorization.manager.RoleManager;
+import nextstep.security.authorization.manager.AuthenticatedAuthorizationManager;
+import nextstep.security.authorization.manager.AuthorizationManager;
+import nextstep.security.authorization.manager.AuthorityAuthorizationManager;
+import nextstep.security.authorization.manager.DenyAllAuthorizationManager;
+import nextstep.security.authorization.manager.PermitAllAuthorizationManager;
 
 public class AuthorizeRequestMatcherRegistry {
-    private final Map<RequestMatcher, RoleManager> mappings = new HashMap<>();
+    private final Map<RequestMatcher, AuthorizationManager> mappings = new HashMap<>();
 
     public AuthorizedUrl matcher(RequestMatcher requestMatcher) {
         return new AuthorizedUrl(requestMatcher);
     }
 
-    AuthorizeRequestMatcherRegistry addMapping(RequestMatcher requestMatcher, RoleManager roleManager) {
-        mappings.put(requestMatcher, roleManager);
+    AuthorizeRequestMatcherRegistry addMapping(RequestMatcher requestMatcher, AuthorizationManager authorizationManager) {
+        mappings.put(requestMatcher, authorizationManager);
         return this;
     }
 
-    public RoleManager getRoleManager(HttpServletRequest request) {
+    public AuthorizationManager getAuthorizationManager(HttpServletRequest request) {
         for (var entry : mappings.entrySet()) {
             if (entry.getKey().matches(request)) {
                 return entry.getValue();
@@ -33,9 +33,6 @@ public class AuthorizeRequestMatcherRegistry {
     }
 
     public class AuthorizedUrl {
-        public static final String PERMIT_ALL = "permitAll";
-        public static final String DENY_ALL = "denyAll";
-        public static final String AUTHENTICATED = "authenticated";
         private final RequestMatcher requestMatcher;
 
         public AuthorizedUrl(RequestMatcher requestMatcher) {
@@ -43,23 +40,23 @@ public class AuthorizeRequestMatcherRegistry {
         }
 
         public AuthorizeRequestMatcherRegistry permitAll() {
-            return access(new PermitAllRoleManager());
+            return access(new PermitAllAuthorizationManager());
         }
 
         public AuthorizeRequestMatcherRegistry denyAll() {
-            return access(new DenyAllRoleManager());
+            return access(new DenyAllAuthorizationManager());
         }
 
         public AuthorizeRequestMatcherRegistry hasAuthority(String... authorities) {
-            return access(new AuthorizationRoleManager(authorities));
+            return access(new AuthorityAuthorizationManager(authorities));
         }
 
         public AuthorizeRequestMatcherRegistry authenticated() {
-            return access(new AuthenticationRoleManager());
+            return access(new AuthenticatedAuthorizationManager());
         }
 
-        private AuthorizeRequestMatcherRegistry access(RoleManager roleManager) {
-            return addMapping(requestMatcher, roleManager);
+        private AuthorizeRequestMatcherRegistry access(AuthorizationManager authorizationManager) {
+            return addMapping(requestMatcher, authorizationManager);
         }
     }
 

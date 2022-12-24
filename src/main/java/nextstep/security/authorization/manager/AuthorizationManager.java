@@ -2,7 +2,7 @@ package nextstep.security.authorization.manager;
 
 import nextstep.security.authentication.Authentication;
 
-public interface RoleManager {
+public interface AuthorizationManager {
 
     boolean check(Authentication authentication);
 }

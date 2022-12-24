@@ -9,7 +9,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import nextstep.security.authentication.Authentication;
-import nextstep.security.authorization.manager.RoleManager;
+import nextstep.security.authorization.manager.AuthorizationManager;
 import nextstep.security.config.AuthorizeRequestMatcherRegistry;
 import nextstep.security.context.SecurityContextHolder;
 import nextstep.security.exception.AuthenticationException;
@@ -38,14 +38,13 @@ public class AuthorizationFilter extends GenericFilterBean {
                     .getAuthentication()
             ).orElseThrow(AuthenticationException::new);
 
-            final RoleManager roleManager = authorizeRequestMatcherRegistry.getRoleManager((HttpServletRequest) request);
+            final AuthorizationManager authorizationManager = authorizeRequestMatcherRegistry.getAuthorizationManager((HttpServletRequest) request);
 
-            if (roleManager == null) {
+            if (authorizationManager == null) {
                 return;
             }
 
-
-            if (!roleManager.check(authentication)) {
+            if (!authorizationManager.check(authentication)) {
                 throw new AuthorizationException();
             }
         } catch (AuthenticationException e) {

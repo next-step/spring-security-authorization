@@ -1,6 +1,8 @@
 package nextstep.app.config;
 
 import java.util.List;
+import javax.servlet.Filter;
+import nextstep.security.access.matcher.AnyRequestMatcher;
 import nextstep.security.access.matcher.MvcRequestMatcher;
 import nextstep.security.authentication.AuthenticationManager;
 import nextstep.security.authentication.BasicAuthenticationFilter;
@@ -8,8 +10,8 @@ import nextstep.security.authentication.UsernamePasswordAuthenticationFilter;
 import nextstep.security.authentication.UsernamePasswordAuthenticationProvider;
 import nextstep.security.authorization.AuthorizationFilter;
 import nextstep.security.authorization.PreAuthorizationFilter;
-import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.AuthorizeRequestMatcherRegistry;
+import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.FilterChainProxy;
 import nextstep.security.config.SecurityFilterChain;
 import nextstep.security.context.HttpSessionSecurityContextRepository;
@@ -40,12 +42,13 @@ public class AuthConfig implements WebMvcConfigurer {
     public FilterChainProxy filterChainProxy(SecurityFilterChain securityFilterChain) {
         return new FilterChainProxy(securityFilterChain);
     }
+
     @Bean
     public SecurityFilterChain securityFilterChain(
         AuthenticationManager authenticationManager,
         SecurityContextRepository securityContextRepository
     ) {
-        return new DefaultSecurityFilterChain(
+        final List<Filter> filters = List.of(
             new UsernamePasswordAuthenticationFilter(
                 authenticationManager,
                 securityContextRepository
@@ -61,6 +64,7 @@ public class AuthConfig implements WebMvcConfigurer {
                     .matcher(new MvcRequestMatcher(HttpMethod.GET, "/members/me")).authenticated()
             )
         );
+        return new DefaultSecurityFilterChain(AnyRequestMatcher.INSTANCE, filters);
     }
 
     @Bean

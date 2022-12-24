@@ -7,7 +7,6 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import nextstep.security.authentication.Authentication;
 import nextstep.security.context.SecurityContext;
 import nextstep.security.context.SecurityContextHolder;
 import nextstep.security.context.SecurityContextRepository;
@@ -27,28 +26,13 @@ public class PreAuthorizationFilter extends GenericFilterBean {
         ServletResponse response,
         FilterChain chain
     ) throws IOException, ServletException {
-        try {
-            if (SecurityContextHolder.getContext().getAuthentication() != null) {
-                chain.doFilter(request, response);
-                return;
-            }
+        final HttpServletRequest httpServletRequest = (HttpServletRequest) request;
 
-            final HttpServletRequest httpServletRequest = (HttpServletRequest) request;
-            SecurityContext context = Optional.ofNullable(
-                    (SecurityContext) httpServletRequest.getSession()
-                        .getAttribute(SecurityContextHolder.SPRING_SECURITY_CONTEXT_KEY)
-                )
-                .orElseGet(() -> securityContextRepository.loadContext(httpServletRequest));
+        final Optional<SecurityContext> securityContext = Optional.ofNullable(
+            securityContextRepository.loadContext(httpServletRequest)
+        );
+        securityContext.ifPresent(it -> SecurityContextHolder.setContext(it));
 
-            final Authentication authentication = Optional.ofNullable(context)
-                .map(it -> it.getAuthentication())
-                .orElse(null);
-
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        } catch (Exception ignored) {
-
-        }
         chain.doFilter(request, response);
     }
 }
