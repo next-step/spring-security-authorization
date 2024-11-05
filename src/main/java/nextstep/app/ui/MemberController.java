@@ -1,8 +1,9 @@
 package nextstep.app.ui;
 
+import java.util.List;
+import nextstep.app.aspect.Secured;
 import nextstep.app.domain.Member;
 import nextstep.app.domain.MemberRepository;
-import nextstep.app.aspect.Secured;
 import nextstep.security.authentication.Authentication;
 import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.context.SecurityContextHolder;
@@ -11,8 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 public class MemberController {
@@ -37,10 +36,15 @@ public class MemberController {
         return ResponseEntity.ok(members);
     }
 
+    @GetMapping("/any-request")
+    public ResponseEntity<String> any() {
+        return ResponseEntity.ok("Hello World");
+    }
+
     @GetMapping("/members/me")
     public ResponseEntity<Member> getCurrentMember() {
         // 내 정보 가져오기
-        Authentication authentication =  SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         // 내 정보 리턴하기
         Member member = memberRepository.findByEmail(authentication.getPrincipal().toString())
                 .orElse(null);

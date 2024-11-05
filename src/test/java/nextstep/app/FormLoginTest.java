@@ -1,5 +1,9 @@
 package nextstep.app;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import nextstep.app.domain.Member;
 import nextstep.app.infrastructure.InmemoryMemberRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -12,13 +16,10 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 class FormLoginTest {
+
     private static final Member TEST_ADMIN_MEMBER = InmemoryMemberRepository.ADMIN_MEMBER;
     private static final Member TEST_USER_MEMBER = InmemoryMemberRepository.USER_MEMBER;
 
@@ -103,5 +104,15 @@ class FormLoginTest {
         );
 
         membersResponse.andExpect(status().isForbidden());
+    }
+
+    @DisplayName("모든 요청을 허용함")
+    @Test
+    void any_request() throws Exception {
+        ResultActions response = mockMvc.perform(get("/any-request")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        response.andExpect(status().isOk());
     }
 }
