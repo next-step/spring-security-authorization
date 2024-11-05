@@ -30,8 +30,7 @@ public class AuthorizationFilter extends OncePerRequestFilter {
         // 가져온 객체에 권한이 있는지 체크한다.
         Authentication authentication = securityContext.getAuthentication();
 
-        // 권한이 없으민 403 을 반환한다.
-        if (!authentication.getAuthorities().contains("ADMIN")) {
+        if (authentication == null || authentication.getAuthorities().isEmpty()) {
             throw new AuthorizationException();
         }
 
