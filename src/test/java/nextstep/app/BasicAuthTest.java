@@ -2,8 +2,6 @@ package nextstep.app;
 
 import nextstep.app.domain.Member;
 import nextstep.app.infrastructure.InmemoryMemberRepository;
-import nextstep.security.authentication.Authentication;
-import nextstep.security.context.SecurityContextHolder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,11 +10,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.Base64;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -80,5 +79,36 @@ class BasicAuthTest {
         );
 
         response.andExpect(status().isUnauthorized());
+    }
+
+    @DisplayName("인증된 사용자는 자신의 정보를 조회할 수 있다.")
+    @Test
+    void request_success_members_me() throws Exception {
+        Member testMember = TEST_ADMIN_MEMBER;
+        String token = Base64.getEncoder().encodeToString((testMember.getEmail() + ":" + testMember.getPassword()).getBytes());
+
+        ResultActions response = mockMvc.perform(get("/members/me")
+                .header("Authorization", "Basic " + token)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        response.andExpect(status().isOk());
+        response.andExpect(MockMvcResultMatchers.jsonPath("$.email").value(testMember.getEmail()));
+        response.andExpect(MockMvcResultMatchers.jsonPath("$.password").value(testMember.getPassword()));
+        response.andExpect(MockMvcResultMatchers.jsonPath("$.name").value(testMember.getName()));
+        response.andExpect(MockMvcResultMatchers.jsonPath("$.imageUrl").value(testMember.getImageUrl()));
+        response.andExpect(MockMvcResultMatchers.jsonPath("$.roles").value(containsInAnyOrder(testMember.getRoles().iterator().next())));
+        response.andDo(MockMvcResultHandlers.print());
+    }
+
+    @DisplayName("인증되지 않은 사용자는 자신의 정보를 조회할 수 없다.")
+    @Test
+    void request_fail_members_me() throws Exception {
+        ResultActions response = mockMvc.perform(get("/members/me")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        response.andExpect(status().isForbidden());
+        response.andDo(MockMvcResultHandlers.print());
     }
 }
