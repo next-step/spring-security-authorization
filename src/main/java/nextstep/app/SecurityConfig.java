@@ -1,10 +1,12 @@
 package nextstep.app;
 
+import java.util.Set;
 import nextstep.app.domain.Member;
 import nextstep.app.domain.MemberRepository;
 import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.authentication.BasicAuthenticationFilter;
 import nextstep.security.authentication.UsernamePasswordAuthenticationFilter;
+import nextstep.security.authorization.AuthorizationFilter;
 import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.DelegatingFilterProxy;
 import nextstep.security.config.FilterChainProxy;
@@ -42,7 +44,8 @@ public class SecurityConfig {
                 List.of(
                         new SecurityContextHolderFilter(),
                         new UsernamePasswordAuthenticationFilter(userDetailsService()),
-                        new BasicAuthenticationFilter(userDetailsService())
+                        new BasicAuthenticationFilter(userDetailsService()),
+                        new AuthorizationFilter()
                 )
         );
     }
@@ -62,6 +65,11 @@ public class SecurityConfig {
                 @Override
                 public String getPassword() {
                     return member.getPassword();
+                }
+
+                @Override
+                public Set<String> getAuthorities() {
+                    return member.getRoles();
                 }
             };
         };
