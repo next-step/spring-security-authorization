@@ -1,4 +1,4 @@
-package nextstep.security.aspect;
+package nextstep.app.aspect;
 
 import java.lang.reflect.Method;
 import nextstep.security.authentication.Authentication;
@@ -8,11 +8,13 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.stereotype.Component;
 
 @Aspect
+@Component
 public class SecuredAspect {
 
-    @Before("@annotation(nextstep.security.authorization.Secured)")
+    @Before("@annotation(nextstep.app.aspect.Secured)")
     public void checkSecured(JoinPoint joinPoint) throws NoSuchMethodException {
 
         // 메소드를 가져온다.

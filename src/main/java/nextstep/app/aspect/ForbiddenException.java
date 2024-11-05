@@ -1,4 +1,4 @@
-package nextstep.security.aspect;
+package nextstep.app.aspect;
 
 public class ForbiddenException extends RuntimeException{
 

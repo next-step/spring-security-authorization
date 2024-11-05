@@ -2,7 +2,7 @@ package nextstep.app.ui;
 
 import nextstep.app.domain.Member;
 import nextstep.app.domain.MemberRepository;
-import nextstep.security.aspect.Secured;
+import nextstep.app.aspect.Secured;
 import nextstep.security.authentication.AuthenticationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
