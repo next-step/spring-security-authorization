@@ -13,7 +13,11 @@ import java.io.IOException;
 
 public class AuthorizationFilter extends OncePerRequestFilter {
 
-    private final AuthorizationManager<HttpServletRequest> authorizationManager = new RequestAuthorizationManager();
+    private final AuthorizationManager<HttpServletRequest> authorizationManager;
+
+    public AuthorizationFilter(AuthorizationManager<HttpServletRequest> authorizationManager) {
+        this.authorizationManager = authorizationManager;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -33,30 +37,5 @@ public class AuthorizationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
-    }
-
-    private boolean checkAuthorization(Authentication authentication, HttpServletRequest httpRequest) {
-        if (httpRequest.getRequestURI().equals("/members")) {
-            if (authentication == null) {
-                throw new AuthenticationException();
-            }
-
-            return authentication.getAuthorities().stream()
-                    .anyMatch(authority -> authority.equals("ADMIN"));
-        }
-
-        if (httpRequest.getRequestURI().equals("/members/me")) {
-            if (authentication == null) {
-                throw new AuthenticationException();
-            }
-
-            return authentication.isAuthenticated();
-        }
-
-        if (httpRequest.getRequestURI().equals("/search")) {
-            return true;
-        }
-
-        return false;
     }
 }
