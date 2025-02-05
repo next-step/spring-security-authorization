@@ -1,6 +1,5 @@
-package nextstep.security.authorization;
+package nextstep.security.authorization.manager;
 
-import nextstep.security.authorization.manager.AuthorizationDecision;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -14,10 +13,10 @@ class AuthorizationDecisionTest {
     void isGranted() {
         assertAll(
                 () -> assertThat(
-                        AuthorizationDecision.GRANTED.isGranted()
+                        AuthorizationDecision.of(true).isGranted()
                 ).isTrue(),
                 () -> assertThat(
-                        AuthorizationDecision.NOT_GRANTED.isGranted()
+                        AuthorizationDecision.of(false).isGranted()
                 ).isFalse()
         );
     }
