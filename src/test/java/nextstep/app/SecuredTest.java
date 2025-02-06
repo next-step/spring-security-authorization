@@ -50,4 +50,13 @@ class SecuredTest {
                         .header("Authorization", TEST_USER_TOKEN)
         ).andDo(print()).andExpect(status().isForbidden());
     }
+
+    @DisplayName("ADMIN 권한을 가진 사용자라도, 제공되지 않는 경로는 접근할 수 없다.")
+    @Test
+    void request_fail_with_admin_user() throws Exception {
+        mockMvc.perform(
+                get("/wrong-url")
+                        .header("Authorization", TEST_ADMIN_TOKEN)
+        ).andDo(print()).andExpect(status().isForbidden());
+    }
 }

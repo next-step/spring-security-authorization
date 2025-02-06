@@ -14,7 +14,7 @@ public class AnyRequestMatcher implements RequestMatcher {
         return true;
     }
 
-    private static class SingletonHolder {
+    private final static class SingletonHolder {
         private static final AnyRequestMatcher INSTANCE = new AnyRequestMatcher();
     }
 }
