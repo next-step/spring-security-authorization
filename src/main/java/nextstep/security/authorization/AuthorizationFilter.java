@@ -37,6 +37,7 @@ public class AuthorizationFilter extends OncePerRequestFilter {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (needRoleCheck) {
+            // Should be Annotation Check
             if (authentication == null) {
                 throw new AuthenticationException();
             }
@@ -45,6 +46,7 @@ public class AuthorizationFilter extends OncePerRequestFilter {
                 throw new ForbiddenException();
             }
         } else if (needLoginCheck && (authentication == null || !authentication.isAuthenticated())) {
+            // Should isAuthenticated Check
             throw new AuthenticationException();
         }
 
