@@ -1,12 +1,15 @@
 package nextstep.app;
 
+import jakarta.servlet.http.HttpServletRequest;
 import nextstep.app.domain.Member;
 import nextstep.app.domain.MemberRepository;
 import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.authentication.BasicAuthenticationFilter;
 import nextstep.security.authentication.UsernamePasswordAuthenticationFilter;
 import nextstep.security.authorization.AuthorizationFilter;
+import nextstep.security.authorization.AuthorizationManager;
 import nextstep.security.authorization.SecuredMethodInterceptor;
+import nextstep.security.authorization.web.RequestAuthorizationManager;
 import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.DelegatingFilterProxy;
 import nextstep.security.config.FilterChainProxy;
@@ -51,13 +54,18 @@ public class SecurityConfig {
 //    }
 
     @Bean
+    public AuthorizationManager<HttpServletRequest> requestAuthorizationManager() {
+        return new RequestAuthorizationManager();
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain() {
         return new DefaultSecurityFilterChain(
                 List.of(
                         new SecurityContextHolderFilter(),
                         new UsernamePasswordAuthenticationFilter(userDetailsService()),
                         new BasicAuthenticationFilter(userDetailsService()),
-                        new AuthorizationFilter()
+                        new AuthorizationFilter(requestAuthorizationManager())
                 )
         );
     }
