@@ -1,13 +1,21 @@
 package nextstep.security.authorization;
 
 public class AuthorizationDecision {
-    private final boolean isAuthorized;
+    private final boolean isGranted;
 
-    public AuthorizationDecision(boolean result) {
-        this.isAuthorized = result;
+    protected AuthorizationDecision(final boolean isGranted) {
+        this.isGranted = isGranted;
     }
 
-    public boolean isAuthorized() {
-        return isAuthorized;
+    public static AuthorizationDecision granted() {
+        return new AuthorizationDecision(true);
+    }
+
+    public static AuthorizationDecision denied() {
+        return new AuthorizationDecision(true);
+    }
+
+    public boolean isDenied() {
+        return !isGranted;
     }
 }
