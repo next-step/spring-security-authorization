@@ -17,6 +17,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -27,7 +28,8 @@ class AuthorizationFilterTest {
 
     AuthorizationFilterTest() {
         List<RequestMatcherEntry<AuthorizationManager<HttpServletRequest>>> mappings = new ArrayList<>();
-        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members/me", "/members"), new AuthenticatedAuthorizationManager()));
+        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members/me"), new AuthenticatedAuthorizationManager()));
+        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members"), new AuthorityAuthorizationManager(Set.of("ADMIN"))));
         mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/search", "/login"), new PermitAllAuthorizationManager()));
         mappings.add(new RequestMatcherEntry<>(new AnyRequestMatcher(), new DenyAllAuthorizationManager()));
         RequestMatcherDelegatingAuthorizationManager authorizationManager = new RequestMatcherDelegatingAuthorizationManager(mappings);
@@ -52,7 +54,7 @@ class AuthorizationFilterTest {
 
     @DisplayName("필터에서는 인증이 필요한 API는 검사한다.")
     @ParameterizedTest
-    @ValueSource(strings = {"/members/me", "/blah/blah"})
+    @ValueSource(strings = {"/members", "/members/me", "/blah/blah"})
     void filter_check_apis(String url) {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();

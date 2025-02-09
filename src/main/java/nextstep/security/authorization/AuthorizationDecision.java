@@ -12,7 +12,7 @@ public class AuthorizationDecision {
     }
 
     public static AuthorizationDecision denied() {
-        return new AuthorizationDecision(true);
+        return new AuthorizationDecision(false);
     }
 
     public boolean isDenied() {
