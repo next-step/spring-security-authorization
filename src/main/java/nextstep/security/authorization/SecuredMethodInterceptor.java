@@ -22,6 +22,9 @@ public class SecuredMethodInterceptor implements MethodInterceptor, PointcutAdvi
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
+        if (!invocation.getMethod().isAnnotationPresent(Secured.class)) {
+            return invocation.proceed();
+        }
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new AuthenticationException();
