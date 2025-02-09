@@ -23,15 +23,22 @@ public class UsernamePasswordAuthenticationFilter extends GenericFilterBean {
     private final AuthenticationManager authenticationManager;
     private final HttpSessionSecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
-    public UsernamePasswordAuthenticationFilter(UserDetailsService userDetailsService) {
+    private List<String> supportsUri;
+
+    public UsernamePasswordAuthenticationFilter(UserDetailsService userDetailsService, List<String> supportsUri) {
         this.authenticationManager = new ProviderManager(
                 List.of(new DaoAuthenticationProvider(userDetailsService))
         );
+        this.supportsUri = supportsUri;
+    }
+
+    public UsernamePasswordAuthenticationFilter(UserDetailsService userDetailsService) {
+        this(userDetailsService, List.of(DEFAULT_REQUEST_URI));
     }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        if (!DEFAULT_REQUEST_URI.equals(((HttpServletRequest) request).getRequestURI())) {
+        if (!supportsUri.contains(((HttpServletRequest) request).getRequestURI())) {
             chain.doFilter(request, response);
             return;
         }
@@ -49,7 +56,6 @@ public class UsernamePasswordAuthenticationFilter extends GenericFilterBean {
             SecurityContextHolder.setContext(context);
 
             securityContextRepository.saveContext(context, (HttpServletRequest) request, (HttpServletResponse) response);
-
         } catch (Exception e) {
             ((HttpServletResponse) response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         }
