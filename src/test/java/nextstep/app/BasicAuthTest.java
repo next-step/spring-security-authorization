@@ -5,6 +5,8 @@ import nextstep.app.domain.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,8 +25,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class BasicAuthTest {
     private final Member TEST_ADMIN_MEMBER = new Member("a@a.com", "password", "a", "", Set.of("ADMIN"));
-    private final Member TEST_USER_MEMBER = new Member("b@b.com", "password", "b", "", Set.of());
-    private final Member TEST_UN_AUTH_EMBER = new Member("c@c.com", "password", "c", "", Set.of());
+    private final Member TEST_USER_MEMBER = new Member("b@b.com", "password", "b", "", Set.of("MEMBER"));
+    private final Member TEST_UN_AUTH_MEMBER = new Member("c@c.com", "password", "c", "", Set.of("MEMBER"));
 
     @Autowired
     private MockMvc mockMvc;
@@ -114,9 +116,23 @@ class BasicAuthTest {
     @DisplayName("인증되지 않은 사용자는 자신의 정보를 조회할 수 없다.")
     @Test
     void request_fail_members_me() throws Exception {
-        String token = Base64.getEncoder().encodeToString((TEST_UN_AUTH_EMBER.getEmail() + ":" + TEST_UN_AUTH_EMBER.getPassword()).getBytes());
+        String token = Base64.getEncoder().encodeToString((TEST_UN_AUTH_MEMBER.getEmail() + ":" + TEST_UN_AUTH_MEMBER.getPassword()).getBytes());
 
         ResultActions response = mockMvc.perform(get("/members/me")
+                .header("Authorization", "Basic " + token)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        response.andExpect(status().isUnauthorized());
+    }
+
+    @DisplayName("허용되지 않은 요청은 접근 불가능해야한다.")
+    @ParameterizedTest
+    @ValueSource(strings = {"/member", "/members/my", "/members/me/1"})
+    void request_fail_not_permit_url(String url) throws Exception {
+        String token = Base64.getEncoder().encodeToString((TEST_ADMIN_MEMBER.getEmail() + ":" + TEST_ADMIN_MEMBER.getPassword()).getBytes());
+
+        ResultActions response = mockMvc.perform(get(url)
                 .header("Authorization", "Basic " + token)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         );
