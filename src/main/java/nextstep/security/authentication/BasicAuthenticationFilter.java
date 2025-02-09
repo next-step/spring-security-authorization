@@ -3,6 +3,7 @@ package nextstep.security.authentication;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import nextstep.security.authorization.ForbiddenException;
 import nextstep.security.context.SecurityContext;
 import nextstep.security.context.SecurityContextHolder;
 import nextstep.security.userdetails.UserDetailsService;
@@ -40,6 +41,8 @@ public class BasicAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.setContext(context);
 
             filterChain.doFilter(request, response);
+        } catch (ForbiddenException e) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         }
