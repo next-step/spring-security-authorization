@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class BasicAuthTest {
     private final Member TEST_ADMIN_MEMBER = new Member("a@a.com", "password", "a", "", Set.of("ADMIN"));
     private final Member TEST_USER_MEMBER = new Member("b@b.com", "password", "b", "", Set.of());
+    private final Member TEST_UN_AUTH_EMBER = new Member("c@c.com", "password", "c", "", Set.of());
 
     @Autowired
     private MockMvc mockMvc;
@@ -83,6 +84,39 @@ class BasicAuthTest {
         String token = Base64.getEncoder().encodeToString((TEST_ADMIN_MEMBER.getEmail() + ":" + "invalid").getBytes());
 
         ResultActions response = mockMvc.perform(get("/members")
+                .header("Authorization", "Basic " + token)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        response.andExpect(status().isUnauthorized());
+    }
+
+    @DisplayName("인증된 사용자는 자신의 정보를 조회할 수 있다.")
+    @Test
+    void request_success_members_me() throws Exception {
+        String token = Base64.getEncoder().encodeToString((TEST_ADMIN_MEMBER.getEmail() + ":" + TEST_ADMIN_MEMBER.getPassword()).getBytes());
+
+        ResultActions response = mockMvc.perform(get("/members/me")
+                .header("Authorization", "Basic " + token)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        response.andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(5))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.email").value("a@a.com"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.password").value("password"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("a"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.imageUrl").exists())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.roles").value("ADMIN"));
+
+    }
+
+    @DisplayName("인증되지 않은 사용자는 자신의 정보를 조회할 수 없다.")
+    @Test
+    void request_fail_members_me() throws Exception {
+        String token = Base64.getEncoder().encodeToString((TEST_UN_AUTH_EMBER.getEmail() + ":" + TEST_UN_AUTH_EMBER.getPassword()).getBytes());
+
+        ResultActions response = mockMvc.perform(get("/members/me")
                 .header("Authorization", "Basic " + token)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         );
