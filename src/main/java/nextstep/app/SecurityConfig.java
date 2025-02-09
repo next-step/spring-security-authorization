@@ -6,6 +6,7 @@ import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.authentication.BasicAuthenticationFilter;
 import nextstep.security.authentication.UsernamePasswordAuthenticationFilter;
 import nextstep.security.authorization.CheckAuthenticationFilter;
+import nextstep.security.authorization.RequestMatcherDelegatingAuthorizationManager;
 import nextstep.security.authorization.SecuredMethodInterceptor;
 import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.DelegatingFilterProxy;
@@ -18,6 +19,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -57,9 +59,14 @@ public class SecurityConfig {
                         new SecurityContextHolderFilter(),
                         new UsernamePasswordAuthenticationFilter(userDetailsService()),
                         new BasicAuthenticationFilter(userDetailsService()),
-                        new CheckAuthenticationFilter()
+                        new CheckAuthenticationFilter(requestMatcherDelegatingAuthorizationManager())
                 )
         );
+    }
+
+    @Bean
+    public RequestMatcherDelegatingAuthorizationManager requestMatcherDelegatingAuthorizationManager() {
+        return new RequestMatcherDelegatingAuthorizationManager(new ArrayList<>());
     }
 
     @Bean

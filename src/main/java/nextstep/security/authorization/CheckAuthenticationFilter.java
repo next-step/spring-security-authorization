@@ -12,7 +12,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 public class CheckAuthenticationFilter extends OncePerRequestFilter {
-    private final RequestMatcherDelegatingAuthorizationManager requestAuthorizationManager = new RequestMatcherDelegatingAuthorizationManager();
+    private final RequestMatcherDelegatingAuthorizationManager requestAuthorizationManager;
+
+    public CheckAuthenticationFilter(RequestMatcherDelegatingAuthorizationManager requestAuthorizationManager) {
+        this.requestAuthorizationManager = requestAuthorizationManager;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
