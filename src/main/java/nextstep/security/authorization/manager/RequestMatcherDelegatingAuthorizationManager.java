@@ -6,6 +6,7 @@ import nextstep.security.authorization.AuthorizationDecision;
 import nextstep.security.matcher.RequestMatcherEntry;
 
 import java.util.List;
+import java.util.Objects;
 
 public class RequestMatcherDelegatingAuthorizationManager {
 
@@ -16,12 +17,12 @@ public class RequestMatcherDelegatingAuthorizationManager {
     }
 
     public AuthorizationDecision checkInFilter(HttpServletRequest request, Authentication authentication) {
-        for (RequestMatcherEntry<AuthorizationManager<HttpServletRequest>> entry : mapping) {
-            boolean matches = entry.getMatcher().matches(request);
-            if (matches) {
-                return entry.getEntry().check(authentication, request);
-            }
-        }
-        return new AuthorizationDecision(false);
+        return mapping.stream()
+                .filter(it -> Objects.nonNull(it.getMatcher()))
+                .filter(it -> it.getMatcher().matches(request))
+                .filter(it -> Objects.nonNull(it.getEntry()))
+                .findFirst()
+                .map(it -> it.getEntry().check(authentication, request))
+                .orElse(AuthorizationDecision.denied());
     }
 }

@@ -30,47 +30,7 @@
 - [x] /members는 "ADMIN" 사용자만에게만 권한을 부여하기 위해 HasAuthorityAuthorizationManager로 처리
 - [x] 그 외 모든 요청은 권한을 제한하기 위해 DenyAllAuthorizationManager로 처리
 
-## 현재 애매한 상황
-
-```java
-
-public class RequestMatcherDelegatingAuthorizationManager {
-
-    private final List<RequestMatcherEntry<AuthorizationManager>> mapping;
-
-    public RequestMatcherDelegatingAuthorizationManager(List<RequestMatcherEntry<AuthorizationManager>> mapping) {
-        this.mapping = mapping;
-    }
-
-    public AuthorizationDecision checkInFilter(HttpServletRequest request, Authentication authentication) {
-        for (RequestMatcherEntry<AuthorizationManager> entry : mapping) {
-            boolean matches = entry.getMatcher().matches(request);
-            if (matches) {
-                AuthorizationManager authorizationManager = entry.getEntry();
-                if (authorizationManager instanceof AuthorityAuthorizationManager) {
-                    return new AuthorizationDecision(true);
-                }
-                return authorizationManager.check(authentication, request);
-            }
-        }
-        return new AuthorizationDecision(false);
-    }
-
-    public AuthorizationDecision checkMethod(Authentication authentication, MethodInvocation methodInvocation) {
-        AuthorizationManager manager = mapping.stream()
-                .map(RequestMatcherEntry::getEntry)
-                .filter(AuthorityAuthorizationManager.class::isInstance)
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("No matching authorization manager"));
-
-        return manager.check(authentication, methodInvocation);
-    }
-}
-```
-
-이 코드가 이상함 너무 특정 로직에 뭉쳐져있는 느낌 어떻게 하면 필터에서 처리하는것과 아닌것을 구분??
-
-아래 객체와 시큐리티 코드 빠르게 확인
+아래 객체와 시큐리티 코드 확인
 // SpEL
 // Role Authority
 // Role Hierarchy

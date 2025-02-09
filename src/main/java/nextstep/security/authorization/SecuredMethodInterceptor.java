@@ -26,7 +26,7 @@ public class SecuredMethodInterceptor implements MethodInterceptor, PointcutAdvi
     public Object invoke(MethodInvocation invocation) throws Throwable {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         AuthorizationDecision authorizationDecision = authorizationManager.check(authentication, invocation);
-        if (!authorizationDecision.isAuthorized()) {
+        if (authorizationDecision.isDenied()) {
             throw new AuthenticationException();
         }
 

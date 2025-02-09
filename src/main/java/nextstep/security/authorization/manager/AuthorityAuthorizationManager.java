@@ -1,34 +1,35 @@
 package nextstep.security.authorization.manager;
 
+import jakarta.servlet.http.HttpServletRequest;
 import nextstep.security.authentication.Authentication;
 import nextstep.security.authorization.AuthorizationDecision;
 import nextstep.security.authorization.ForbiddenException;
-import nextstep.security.authorization.Secured;
-import org.aopalliance.intercept.MethodInvocation;
 
-import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.util.Set;
 
-public class AuthorityAuthorizationManager implements AuthorizationManager<MethodInvocation> {
+public class AuthorityAuthorizationManager implements AuthorizationManager<HttpServletRequest> {
+
+    private final Set<String> authorities;
+
+    public AuthorityAuthorizationManager(Set<String> authorities) {
+        this.authorities = authorities;
+    }
+
 
     @Override
-    public AuthorizationDecision check(Authentication authentication, MethodInvocation methodInvocation) {
+    public AuthorizationDecision check(Authentication authentication, HttpServletRequest request) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            return new AuthorizationDecision(false);
+            return AuthorizationDecision.denied();
         }
 
-        Method method = methodInvocation.getMethod();
+        boolean hasNoRole = authentication.getAuthorities()
+                .stream()
+                .noneMatch(authorities::contains);
 
-        if (method.isAnnotationPresent(Secured.class)) {
-            Secured secured = method.getAnnotation(Secured.class);
-            boolean hasNoRole = authentication.getAuthorities()
-                    .stream()
-                    .noneMatch(auth -> Arrays.asList(secured.value()).contains(auth));
-            if (hasNoRole) {
-                throw new ForbiddenException();
-            }
+        if (hasNoRole) {
+            throw new ForbiddenException();
         }
 
-        return new AuthorizationDecision(true);
+        return AuthorizationDecision.granted();
     }
 }
