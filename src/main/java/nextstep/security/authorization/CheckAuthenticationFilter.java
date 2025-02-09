@@ -9,30 +9,36 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Set;
+import java.util.List;
 
 public class CheckAuthenticationFilter extends OncePerRequestFilter {
     private static final String DEFAULT_REQUEST_URI = "/members";
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (!DEFAULT_REQUEST_URI.equals(request.getRequestURI())) {
+        String requestURI = request.getRequestURI();
+
+        if (List.of("/search", "/login").contains(requestURI)) {
             filterChain.doFilter(request, response);
             return;
         }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
+
+        if (authentication == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        }
+
+        if ("/members/me".equals(requestURI) && authentication.isAuthenticated()) {
+            filterChain.doFilter(request, response);
             return;
         }
 
-        Set<String> authorities = authentication.getAuthorities();
-        if (!authorities.contains("ADMIN")) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        if (DEFAULT_REQUEST_URI.equals(requestURI) && authentication.getAuthorities().contains("ADMIN")) {
+            filterChain.doFilter(request, response);
             return;
         }
 
-        filterChain.doFilter(request, response);
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     }
 }
