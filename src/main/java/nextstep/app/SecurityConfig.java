@@ -1,5 +1,6 @@
 package nextstep.app;
 
+import jakarta.servlet.http.HttpServletRequest;
 import nextstep.app.domain.Member;
 import nextstep.app.domain.MemberRepository;
 import nextstep.security.authentication.AuthenticationException;
@@ -48,8 +49,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecuredMethodInterceptor securedMethodInterceptor(RequestMatcherDelegatingAuthorizationManager authorizationManager) {
-        return new SecuredMethodInterceptor(authorizationManager);
+    public SecuredMethodInterceptor securedMethodInterceptor() {
+        return new SecuredMethodInterceptor(new AuthorityAuthorizationManager());
     }
 //    @Bean
 //    public SecuredAspect securedAspect() {
@@ -58,9 +59,8 @@ public class SecurityConfig {
 
     @Bean
     public RequestMatcherDelegatingAuthorizationManager requestMatcherDelegatingAuthorizationManager() {
-        List<RequestMatcherEntry<AuthorizationManager>> mappings = new ArrayList<>();
-        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members/me"), new AuthenticatedAuthorizationManager()));
-        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members"), new AuthorityAuthorizationManager()));
+        List<RequestMatcherEntry<AuthorizationManager<HttpServletRequest>>> mappings = new ArrayList<>();
+        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members/me", "/members"), new AuthenticatedAuthorizationManager()));
         mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/search", "/login"), new PermitAllAuthorizationManager()));
         mappings.add(new RequestMatcherEntry<>(new AnyRequestMatcher(), new DenyAllAuthorizationManager()));
         return new RequestMatcherDelegatingAuthorizationManager(mappings);

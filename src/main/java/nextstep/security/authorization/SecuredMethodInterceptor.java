@@ -2,7 +2,7 @@ package nextstep.security.authorization;
 
 import nextstep.security.authentication.Authentication;
 import nextstep.security.authentication.AuthenticationException;
-import nextstep.security.authorization.manager.RequestMatcherDelegatingAuthorizationManager;
+import nextstep.security.authorization.manager.AuthorizationManager;
 import nextstep.security.context.SecurityContextHolder;
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
@@ -16,9 +16,8 @@ import org.springframework.aop.support.annotation.AnnotationMatchingPointcut;
 public class SecuredMethodInterceptor implements MethodInterceptor, PointcutAdvisor, AopInfrastructureBean {
 
     private final Pointcut pointcut;
-    private final RequestMatcherDelegatingAuthorizationManager authorizationManager;
-
-    public SecuredMethodInterceptor(RequestMatcherDelegatingAuthorizationManager authorizationManager) {
+    private final AuthorizationManager<MethodInvocation> authorizationManager;
+    public SecuredMethodInterceptor(AuthorizationManager<MethodInvocation> authorizationManager) {
         this.authorizationManager = authorizationManager;
         this.pointcut = new AnnotationMatchingPointcut(null, Secured.class);
     }
@@ -26,7 +25,7 @@ public class SecuredMethodInterceptor implements MethodInterceptor, PointcutAdvi
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        AuthorizationDecision authorizationDecision = authorizationManager.checkMethod(authentication, invocation);
+        AuthorizationDecision authorizationDecision = authorizationManager.check(authentication, invocation);
         if (!authorizationDecision.isAuthorized()) {
             throw new AuthenticationException();
         }
