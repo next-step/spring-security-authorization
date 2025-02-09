@@ -22,13 +22,14 @@ public class MemberController {
         this.memberRepository = memberRepository;
     }
 
+    @Secured("ADMIN")
     @GetMapping("/members")
     public ResponseEntity<List<Member>> list() {
         List<Member> members = memberRepository.findAll();
         return ResponseEntity.ok(members);
     }
 
-    @Secured("ADMIN")
+    @Secured({"ADMIN", "MEMBER"})
     @GetMapping("/search")
     public ResponseEntity<List<Member>> search() {
         List<Member> members = memberRepository.findAll();

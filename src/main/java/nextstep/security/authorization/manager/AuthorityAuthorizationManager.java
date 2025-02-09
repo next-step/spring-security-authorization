@@ -7,6 +7,7 @@ import nextstep.security.authorization.Secured;
 import org.aopalliance.intercept.MethodInvocation;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 public class AuthorityAuthorizationManager implements AuthorizationManager<MethodInvocation> {
 
@@ -20,7 +21,10 @@ public class AuthorityAuthorizationManager implements AuthorizationManager<Metho
 
         if (method.isAnnotationPresent(Secured.class)) {
             Secured secured = method.getAnnotation(Secured.class);
-            if (!authentication.getAuthorities().contains(secured.value())) {
+            boolean hasNoRole = authentication.getAuthorities()
+                    .stream()
+                    .noneMatch(auth -> Arrays.asList(secured.value()).contains(auth));
+            if (hasNoRole) {
                 throw new ForbiddenException();
             }
         }
