@@ -1,34 +1,28 @@
 package nextstep.security.authorization;
 
-import nextstep.security.authentication.Authentication;
-import nextstep.security.context.SecurityContextHolder;
-import org.springframework.web.filter.OncePerRequestFilter;
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import nextstep.security.authentication.Authentication;
+import nextstep.security.authentication.AuthenticationException;
+import nextstep.security.context.SecurityContextHolder;
+import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
-import java.util.Set;
 
 public class CheckAuthenticationFilter extends OncePerRequestFilter {
-    private static final String DEFAULT_REQUEST_URI = "/members";
+    private final RequestMatcherDelegatingAuthorizationManager requestAuthorizationManager = new RequestMatcherDelegatingAuthorizationManager();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (!DEFAULT_REQUEST_URI.equals(request.getRequestURI())) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            requestAuthorizationManager.check(authentication, request);
+        } catch (AuthenticationException ae) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
-        }
-
-        Set<String> authorities = authentication.getAuthorities();
-        if (!authorities.contains("ADMIN")) {
+        } catch (ForbiddenException fe) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
