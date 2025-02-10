@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class BasicAuthTest {
     private final Member TEST_ADMIN_MEMBER = new Member("a@a.com", "password", "a", "", Set.of("ADMIN"));
-    private final Member TEST_USER_MEMBER = new Member("b@b.com", "password", "b", "", Set.of());
+    private final Member TEST_USER_MEMBER = new Member("b@b.com", "password", "b", "", Set.of("USER"));
 
     @Autowired
     private MockMvc mockMvc;
@@ -44,7 +44,6 @@ class BasicAuthTest {
 
         ResultActions response = mockMvc.perform(get("/members/me")
                 .header("Authorization", "Basic " + token)
-                .param("email", TEST_USER_MEMBER.getEmail())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         );
 
@@ -59,7 +58,6 @@ class BasicAuthTest {
 
         ResultActions response = mockMvc.perform(get("/members/me")
                 .header("Authorization", "Basic " + token)
-                .param("email", TEST_USER_MEMBER.getEmail())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         );
 
