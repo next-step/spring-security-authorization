@@ -17,8 +17,8 @@ public class RequestMatcherDelegatingAuthorizationManager implements Authorizati
     public AuthorizationDecision check(Authentication authentication, HttpServletRequest request) {
         return mappings.stream()
                 .filter((it) -> it.getRequestMatcher().matches(request))
-                .findFirst()
                 .map((it) -> it.getEntry().check(authentication, request))
+                .findFirst()
                 .orElse(AuthorizationDecision.deny());
     }
 }

@@ -173,4 +173,42 @@ class FormLoginTest {
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(2));
     }
+
+    @Test
+    @DisplayName("제한된 URI은 ADMIN 이여도 접근할수 없다")
+    void request_private_with_admin_user() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+
+        mockMvc.perform(post("/login")
+                .param("username", TEST_ADMIN_MEMBER.getEmail())
+                .param("password", TEST_ADMIN_MEMBER.getPassword())
+                .session(session)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        ).andExpect(status().isOk());
+
+        mockMvc.perform(post("/private")
+                        .session(session)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                )
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("제한된 URI은 접근할수 없다")
+    void request_private_with_user_user() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+
+        mockMvc.perform(post("/login")
+                .param("username", TEST_USER_MEMBER.getEmail())
+                .param("password", TEST_USER_MEMBER.getPassword())
+                .session(session)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        ).andExpect(status().isOk());
+
+        mockMvc.perform(post("/private")
+                        .session(session)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                )
+                .andExpect(status().isForbidden());
+    }
 }
