@@ -151,7 +151,7 @@ class FormLoginTest {
     void request_fail_members_me() throws Exception {
         mockMvc.perform(get("/members/me")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-        ).andExpect(status().isUnauthorized());
+        ).andExpect(status().isForbidden());
     }
 
     @Test
