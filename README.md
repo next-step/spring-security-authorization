@@ -23,7 +23,7 @@ RequestMatcherDelegatingAuthorizationManager객체의 mappings 정보는 Authori
 
 ## 목표 
 - [ ] RequestMatcherRegistry와 RequestMatcher를 작성하고, RequestMatcher의 구현체를 작성한다.
-    - [ ] AnyRequestMatcher: 모든 경우 true를 리턴한다.
+    - [X] AnyRequestMatcher: 모든 경우 true를 리턴한다.
     - [ ] MvcRequestMatcher: method와 pattern(uri)가 같은지 비교하여 리턴한다.
 - [ ] RequestMatcherEntry의 T entry는 아래에 해당되는 각 요청별 인가 로직을 담당하는 AuthorizationManager가 된다.
 
