@@ -1,4 +1,4 @@
-package nextstep.security.authorization.matcher;
+package nextstep.security.authorization.access;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpMethod;

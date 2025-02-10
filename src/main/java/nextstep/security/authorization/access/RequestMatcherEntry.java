@@ -1,4 +1,4 @@
-package nextstep.security.authorization.matcher;
+package nextstep.security.authorization.access;
 
 public class RequestMatcherEntry<T> {
 
