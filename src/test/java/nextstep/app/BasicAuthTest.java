@@ -37,6 +37,35 @@ class BasicAuthTest {
         memberRepository.save(TEST_USER_MEMBER);
     }
 
+    @DisplayName("인증된 사용자는 자신의 정보를 조회할 수 있다.")
+    @Test
+    void request_success_members_me() throws Exception {
+        String token = Base64.getEncoder().encodeToString((TEST_USER_MEMBER.getEmail() + ":" + TEST_USER_MEMBER.getPassword()).getBytes());
+
+        ResultActions response = mockMvc.perform(get("/members/me")
+                .header("Authorization", "Basic " + token)
+                .param("email", TEST_USER_MEMBER.getEmail())
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        response.andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.email").value(TEST_USER_MEMBER.getEmail()));
+    }
+
+    @DisplayName("인증되지 않은 사용자는 자신의 정보를 조회할 수 없다.")
+    @Test
+    void request_fail_members_me() throws Exception {
+        String token = Base64.getEncoder().encodeToString(("none" + ":" + "none").getBytes());
+
+        ResultActions response = mockMvc.perform(get("/members/me")
+                .header("Authorization", "Basic " + token)
+                .param("email", TEST_USER_MEMBER.getEmail())
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        response.andExpect(status().isUnauthorized());
+    }
+
     @DisplayName("ADMIN 권한을 가진 사용자가 요청할 경우 모든 회원 정보를 조회할 수 있다.")
     @Test
     void request_success_with_admin_user() throws Exception {
