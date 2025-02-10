@@ -9,6 +9,7 @@ import nextstep.security.authentication.UsernamePasswordAuthenticationFilter;
 import nextstep.security.authorization.AuthorizationFilter;
 import nextstep.security.authorization.AuthorizationManager;
 import nextstep.security.authorization.SecuredMethodInterceptor;
+import nextstep.security.authorization.method.SecuredAuthorizationManager;
 import nextstep.security.authorization.web.RequestAuthorizationManager;
 import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.DelegatingFilterProxy;
@@ -17,6 +18,7 @@ import nextstep.security.config.SecurityFilterChain;
 import nextstep.security.context.SecurityContextHolderFilter;
 import nextstep.security.userdetails.UserDetails;
 import nextstep.security.userdetails.UserDetailsService;
+import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
@@ -46,12 +48,18 @@ public class SecurityConfig {
 
     @Bean
     public SecuredMethodInterceptor securedMethodInterceptor() {
-        return new SecuredMethodInterceptor();
+        return new SecuredMethodInterceptor(securedAuthorizationManager());
     }
+
 //    @Bean
 //    public SecuredAspect securedAspect() {
 //        return new SecuredAspect();
 //    }
+
+    @Bean
+    public AuthorizationManager<MethodInvocation> securedAuthorizationManager(){
+        return new SecuredAuthorizationManager();
+    }
 
     @Bean
     public AuthorizationManager<HttpServletRequest> requestAuthorizationManager() {
