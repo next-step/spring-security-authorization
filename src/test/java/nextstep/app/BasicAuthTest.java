@@ -91,6 +91,20 @@ class BasicAuthTest {
         response.andExpect(status().isForbidden());
     }
 
+    @DisplayName("허용된 URI이 아닌경우 요청이 실패 한다.")
+    @Test
+    void request_fail_invalid_uri() throws Exception {
+        String token = Base64.getEncoder().encodeToString((TEST_USER_MEMBER.getEmail() + ":" + TEST_USER_MEMBER.getPassword()).getBytes());
+
+        ResultActions response = mockMvc.perform(get("/invalid-uri")
+                .header("Authorization", "Basic " + token)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        response.andExpect(status().isForbidden());
+    }
+
+
     @DisplayName("사용자 정보가 없는 경우 요청이 실패해야 한다.")
     @Test
     void request_fail_with_no_user() throws Exception {

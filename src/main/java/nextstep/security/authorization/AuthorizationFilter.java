@@ -11,7 +11,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 public class AuthorizationFilter extends OncePerRequestFilter {
-    private final AuthorizationManager<HttpServletRequest> authorizationManager = new RequestAuthorizationManager();
+    private final AuthorizationManager<HttpServletRequest> authorizationManager;
+
+    public AuthorizationFilter(final AuthorizationManager<HttpServletRequest> authorizationManager) {
+        this.authorizationManager = authorizationManager;
+    }
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {

@@ -2,47 +2,29 @@ package nextstep.security.authorization;
 
 import jakarta.servlet.http.HttpServletRequest;
 import nextstep.security.authentication.Authentication;
-import nextstep.security.authentication.AuthenticationException;
+import nextstep.security.authorization.matcher.RequestMatcher;
+import nextstep.security.authorization.matcher.RequestMatcherEntry;
 
-import java.util.Set;
+import java.util.List;
 
 public class RequestAuthorizationManager implements AuthorizationManager<HttpServletRequest> {
+    private final List<RequestMatcherEntry<AuthorizationManager>> mappings;
+
+    public RequestAuthorizationManager(final List<RequestMatcherEntry<AuthorizationManager>> mappings) {
+        this.mappings = mappings;
+    }
+
     @Override
     public AuthorizationDecision check(final Authentication authentication, final HttpServletRequest request) {
-        if (request.getRequestURI().equals("/members")) {
-            if (!isAuthenticated(authentication)) {
-                throw new AuthenticationException();
+        for (RequestMatcherEntry<AuthorizationManager> mapping : this.mappings) {
+            RequestMatcher matcher = mapping.getRequestMatcher();
+            if (matcher.matches(request)) {
+                AuthorizationManager manager = mapping.getEntry();
+
+                return manager.check(authentication, request);
             }
-
-            return new AuthorizationDecision(isGranted(authentication, "ADMIN"));
-        }
-
-        if (request.getRequestURI().equals("/members/me")) {
-            if (!isAuthenticated(authentication)) {
-                throw new AuthenticationException();
-            }
-
-            return new AuthorizationDecision(true);
-        }
-
-        if (request.getRequestURI().equals("/search")) {
-            return new AuthorizationDecision(true);
         }
 
         return new AuthorizationDecision(false);
-    }
-
-
-    private boolean isGranted(final Authentication authentication, final String authoritiesURI) {
-        final Set<String> authorities = authentication.getAuthorities();
-        return authorities.contains(authoritiesURI);
-    }
-
-    private boolean isAuthenticated(final Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return false;
-        }
-
-        return true;
     }
 }
