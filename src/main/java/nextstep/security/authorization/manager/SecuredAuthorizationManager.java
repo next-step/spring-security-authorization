@@ -3,6 +3,7 @@ package nextstep.security.authorization.manager;
 import nextstep.security.authentication.Authentication;
 import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.authorization.AuthorizationDecision;
+import nextstep.security.authorization.ForbiddenException;
 import nextstep.security.authorization.Secured;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -24,7 +25,7 @@ public class SecuredAuthorizationManager implements AuthorizationManager<MethodI
         Method method = invocation.getMethod();
 
         if (authentication == null) {
-            throw new AuthenticationException();
+            throw new ForbiddenException();
         }
 
         if (method.isAnnotationPresent(Secured.class)) {
