@@ -17,6 +17,7 @@ import java.util.Base64;
 import java.util.Set;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -48,7 +49,7 @@ class BasicAuthTest {
         );
 
         response.andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(2));
+                .andExpect(jsonPath("$.length()").value(2));
     }
 
     @DisplayName("일반 사용자가 요청할 경우 권한이 없어야 한다.")
@@ -83,6 +84,34 @@ class BasicAuthTest {
         String token = Base64.getEncoder().encodeToString((TEST_ADMIN_MEMBER.getEmail() + ":" + "invalid").getBytes());
 
         ResultActions response = mockMvc.perform(get("/members")
+                .header("Authorization", "Basic " + token)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        response.andExpect(status().isUnauthorized());
+    }
+
+    @DisplayName("인증된 사용자는 자신의 정보를 조회할 수 있다.")
+    @Test
+    void request_success_members_me() throws Exception {
+        String token = Base64.getEncoder().encodeToString((TEST_USER_MEMBER.getEmail() + ":" + TEST_USER_MEMBER.getPassword()).getBytes());
+
+        ResultActions response = mockMvc.perform(get("/members/me")
+                .header("Authorization", "Basic " + token)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        response.andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("b@b.com"))
+                .andExpect(jsonPath("$.password").value("password"));
+    }
+
+    @DisplayName("인증된 사용자는 자신의 정보를 조회할 수 있다.")
+    @Test
+    void request_fail_members_me() throws Exception {
+        String token = Base64.getEncoder().encodeToString((TEST_ADMIN_MEMBER.getEmail() + ":" + "invalid").getBytes());
+
+        ResultActions response = mockMvc.perform(get("/members/me")
                 .header("Authorization", "Basic " + token)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         );
