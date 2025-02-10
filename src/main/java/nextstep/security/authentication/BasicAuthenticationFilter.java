@@ -1,6 +1,7 @@
 package nextstep.security.authentication;
 
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import nextstep.security.context.SecurityContext;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
@@ -26,23 +28,19 @@ public class BasicAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) {
-        try {
-            Authentication authentication = convert(request);
-            if (authentication == null) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-
-            Authentication authResult = this.authenticationManager.authenticate(authentication);
-            SecurityContext context = SecurityContextHolder.createEmptyContext();
-            context.setAuthentication(authResult);
-            SecurityContextHolder.setContext(context);
-
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        Authentication authentication = convert(request);
+        if (authentication == null) {
             filterChain.doFilter(request, response);
-        } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
         }
+
+        Authentication authResult = this.authenticationManager.authenticate(authentication);
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(authResult);
+        SecurityContextHolder.setContext(context);
+
+        filterChain.doFilter(request, response);
     }
 
     private Authentication convert(HttpServletRequest request) {

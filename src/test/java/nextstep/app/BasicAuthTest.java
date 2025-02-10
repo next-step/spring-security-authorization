@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class BasicAuthTest {
     private final Member TEST_ADMIN_MEMBER = new Member("a@a.com", "password", "a", "", Set.of("ADMIN"));
-    private final Member TEST_USER_MEMBER = new Member("b@b.com", "password", "b", "", Set.of());
+    private final Member TEST_USER_MEMBER = new Member("b@b.com", "password", "b", "", Set.of(""));
 
     @Autowired
     private MockMvc mockMvc;
@@ -35,6 +35,33 @@ class BasicAuthTest {
     void setUp() {
         memberRepository.save(TEST_ADMIN_MEMBER);
         memberRepository.save(TEST_USER_MEMBER);
+    }
+
+    @DisplayName("인증된 사용자는 자신의 정보를 조회할 수 있다.")
+    @Test
+    void request_success_members_me() throws Exception {
+        String token = Base64.getEncoder().encodeToString((TEST_USER_MEMBER.getEmail() + ":" + TEST_USER_MEMBER.getPassword()).getBytes());
+
+        ResultActions response = mockMvc.perform(get("/members/me")
+                .header("Authorization", "Basic " + token)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        response.andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.email").value(TEST_USER_MEMBER.getEmail()));
+    }
+
+    @DisplayName("인증되지 않은 사용자는 자신의 정보를 조회할 수 없다.")
+    @Test
+    void request_fail_members_me() throws Exception {
+        String token = Base64.getEncoder().encodeToString(("none" + ":" + "none").getBytes());
+
+        ResultActions response = mockMvc.perform(get("/members/me")
+                .header("Authorization", "Basic " + token)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        response.andExpect(status().isUnauthorized());
     }
 
     @DisplayName("ADMIN 권한을 가진 사용자가 요청할 경우 모든 회원 정보를 조회할 수 있다.")
@@ -63,6 +90,20 @@ class BasicAuthTest {
 
         response.andExpect(status().isForbidden());
     }
+
+    @DisplayName("허용된 URI이 아닌경우 요청이 실패 한다.")
+    @Test
+    void request_fail_invalid_uri() throws Exception {
+        String token = Base64.getEncoder().encodeToString((TEST_USER_MEMBER.getEmail() + ":" + TEST_USER_MEMBER.getPassword()).getBytes());
+
+        ResultActions response = mockMvc.perform(get("/invalid-uri")
+                .header("Authorization", "Basic " + token)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        response.andExpect(status().isForbidden());
+    }
+
 
     @DisplayName("사용자 정보가 없는 경우 요청이 실패해야 한다.")
     @Test

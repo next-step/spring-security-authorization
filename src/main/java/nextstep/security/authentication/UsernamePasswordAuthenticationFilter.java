@@ -36,23 +36,18 @@ public class UsernamePasswordAuthenticationFilter extends GenericFilterBean {
             return;
         }
 
-        try {
-            Authentication authentication = convert(request);
-            if (authentication == null) {
-                chain.doFilter(request, response);
-                return;
-            }
-
-            Authentication authenticate = this.authenticationManager.authenticate(authentication);
-            SecurityContext context = SecurityContextHolder.createEmptyContext();
-            context.setAuthentication(authenticate);
-            SecurityContextHolder.setContext(context);
-
-            securityContextRepository.saveContext(context, (HttpServletRequest) request, (HttpServletResponse) response);
-
-        } catch (Exception e) {
-            ((HttpServletResponse) response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        Authentication authentication = convert(request);
+        if (authentication == null) {
+            chain.doFilter(request, response);
+            return;
         }
+
+        Authentication authenticate = this.authenticationManager.authenticate(authentication);
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(authenticate);
+        SecurityContextHolder.setContext(context);
+
+        securityContextRepository.saveContext(context, (HttpServletRequest) request, (HttpServletResponse) response);
     }
 
     private Authentication convert(ServletRequest request) {
