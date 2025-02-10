@@ -15,6 +15,11 @@ public class RequestMatcherDelegatingAuthorizationManager implements Authorizati
 
     @Override
     public AuthorizationDecision check(Authentication authentication, HttpServletRequest request) {
+        for (RequestMatcherEntry<AuthorizationManager<HttpServletRequest>> entry : mappings) {
+            if (entry.matches(request)) {
+                return entry.getEntry().check(authentication, request);
+            }
+        }
         return new AuthorizationDecision(true);
     }
 }
