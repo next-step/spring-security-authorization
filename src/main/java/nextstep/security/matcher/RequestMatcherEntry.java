@@ -8,4 +8,12 @@ public class RequestMatcherEntry<T> {
         this.requestMatcher = requestMatcher;
         this.entry = entry;
     }
+
+    public RequestMatcher getRequestMatcher() {
+        return requestMatcher;
+    }
+
+    public T getEntry() {
+        return entry;
+    }
 }

@@ -22,16 +22,16 @@ SecuredMethodInterceptor와 AuthorizationFilter에서 작성된 인가 로직을
 RequestMatcherDelegatingAuthorizationManager객체의 mappings 정보는 AuthorizeHttpRequestsConfigurer를 통해서 설정되는데 HttpSecurity를 비롯한 XXXConfigurer의 동작은 4일차에서 진행할 예정이므로 지금 단계에서는 무시하고 AuthorizationManager객체와 mappings을 생성하는 것에 집중한다.
 
 ## 목표 
-- [ ] RequestMatcherRegistry와 RequestMatcher를 작성하고, RequestMatcher의 구현체를 작성한다.
+- [X] RequestMatcherRegistry와 RequestMatcher를 작성하고, RequestMatcher의 구현체를 작성한다.
     - [X] AnyRequestMatcher: 모든 경우 true를 리턴한다.
     - [X] MvcRequestMatcher: method와 pattern(uri)가 같은지 비교하여 리턴한다.
-- [ ] RequestMatcherEntry의 T entry는 아래에 해당되는 각 요청별 인가 로직을 담당하는 AuthorizationManager가 된다.
+- [X] RequestMatcherEntry 작성 
 
 ### 예시 
 - /login은 모든 요청을 받을 수 있도록 PermitAllAuthorizationManager로 처리  
 - /members/me는 인증된 사용자만에게만 권한을 부여하기 위해 AuthenticatedAuthorizationManager로 처리  
 - /members는 "ADMIN" 사용자만에게만 권한을 부여하기 위해 HasAuthorityAuthorizationManager로 처리  
-- 그 외 모든 요청은 권한을 제한하기 위해 DenyAllAuthorizationManager로 처리  
+  
 
 
 
