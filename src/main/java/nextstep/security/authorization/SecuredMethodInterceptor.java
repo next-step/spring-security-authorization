@@ -1,7 +1,6 @@
 package nextstep.security.authorization;
 
 import nextstep.security.authentication.Authentication;
-import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.context.SecurityContextHolder;
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
@@ -11,10 +10,9 @@ import org.springframework.aop.PointcutAdvisor;
 import org.springframework.aop.framework.AopInfrastructureBean;
 import org.springframework.aop.support.annotation.AnnotationMatchingPointcut;
 
-import java.lang.reflect.Method;
-
 public class SecuredMethodInterceptor implements MethodInterceptor, PointcutAdvisor, AopInfrastructureBean {
 
+    private final SecuredAuthorizationManager authorizationManager = new SecuredAuthorizationManager();
     private final Pointcut pointcut;
 
     public SecuredMethodInterceptor() {
@@ -23,17 +21,8 @@ public class SecuredMethodInterceptor implements MethodInterceptor, PointcutAdvi
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
-        Method method = invocation.getMethod();
-        if (method.isAnnotationPresent(Secured.class)) {
-            Secured secured = method.getAnnotation(Secured.class);
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication == null) {
-                throw new AuthenticationException();
-            }
-            if (!authentication.getAuthorities().contains(secured.value())) {
-                throw new ForbiddenException();
-            }
-        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        authorizationManager.check(authentication, invocation);
         return invocation.proceed();
     }
 
