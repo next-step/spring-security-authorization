@@ -9,7 +9,7 @@ public class AuthorizationDecision {
         this.isGranted = isGranted;
     }
 
-    public boolean isGranted() {
-        return isGranted;
+    public boolean isDenied() {
+        return !isGranted;
     }
 }

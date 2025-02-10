@@ -3,7 +3,7 @@ package nextstep.security.authorization.matcher;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpMethod;
 
-public class MvcRequestMatcher implements RequestMatcher{
+public class MvcRequestMatcher implements RequestMatcher {
 
     private final HttpMethod method;
     private final String pattern;
