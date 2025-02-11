@@ -1,9 +1,7 @@
 package nextstep.security.authorization.manager;
 
 import nextstep.security.authentication.Authentication;
-import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.authorization.AuthorizationDecision;
-import nextstep.security.authorization.ForbiddenException;
 import nextstep.security.authorization.Secured;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -23,25 +21,21 @@ public class SecuredAuthorizationManager implements AuthorizationManager<MethodI
     @Override
     public AuthorizationDecision check(Authentication authentication, MethodInvocation invocation) {
         Method method = invocation.getMethod();
+        boolean isGranted = isGranted(authentication, method);
 
-        if (authentication == null) {
-            throw new ForbiddenException();
-        }
-
-        if (method.isAnnotationPresent(Secured.class)) {
-            Secured secured = getSecured(method);
-            return this.authorizationManager.check(authentication, Set.of(secured.value()));
-        }
-
-        return AuthorizationDecision.ACCESS_DENIED;
+        return new AuthorizationDecision(isGranted);
     }
 
-    private Secured getSecured(Method method) {
-        Secured secured = AnnotationUtils.findAnnotation(method, Secured.class);
-        if (secured == null) {
-            throw new IllegalStateException();
+    private boolean isGranted(Authentication authentication, Method method) {
+        return (authentication != null && checkAuthorization(authentication, method));
+    }
+
+    private boolean checkAuthorization(Authentication authentication, Method method) {
+        if (!method.isAnnotationPresent(Secured.class)) {
+            return false;
         }
 
-        return secured;
+        Secured secured = AnnotationUtils.findAnnotation(method, Secured.class);
+        return this.authorizationManager.check(authentication, Set.of(secured.value())).isGranted();
     }
 }

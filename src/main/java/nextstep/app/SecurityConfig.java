@@ -8,14 +8,14 @@ import nextstep.security.authentication.BasicAuthenticationFilter;
 import nextstep.security.authentication.UsernamePasswordAuthenticationFilter;
 import nextstep.security.authorization.AuthorizationFilter;
 import nextstep.security.authorization.SecuredMethodInterceptor;
+import nextstep.security.authorization.access.AnyRequestMatcher;
+import nextstep.security.authorization.access.MvcRequestMatcher;
+import nextstep.security.authorization.access.RequestMatcherEntry;
 import nextstep.security.authorization.manager.AuthenticatedAuthorizationManager;
 import nextstep.security.authorization.manager.AuthorityAuthorizationManager;
 import nextstep.security.authorization.manager.AuthorizationManager;
 import nextstep.security.authorization.manager.RequestMatcherDelegatingAuthorizationManager;
 import nextstep.security.authorization.manager.SecuredAuthorizationManager;
-import nextstep.security.authorization.access.AnyRequestMatcher;
-import nextstep.security.authorization.access.MvcRequestMatcher;
-import nextstep.security.authorization.access.RequestMatcherEntry;
 import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.DelegatingFilterProxy;
 import nextstep.security.config.FilterChainProxy;
@@ -104,18 +104,16 @@ public class SecurityConfig {
                 new MvcRequestMatcher(HttpMethod.GET, "/members/me"),
                 AuthenticatedAuthorizationManager.authenticated())
         );
-
         mappings.add(new RequestMatcherEntry<>(
                 new MvcRequestMatcher(HttpMethod.GET, "/members"),
                 AuthorityAuthorizationManager.hasAuthority("ADMIN")));
-
         mappings.add(new RequestMatcherEntry<>(
                 new MvcRequestMatcher(HttpMethod.GET, "/search"),
                 AuthorityAuthorizationManager.permitAll())
         );
         mappings.add(new RequestMatcherEntry<>(
                 new AnyRequestMatcher(),
-                AuthorityAuthorizationManager.permitAll())
+                AuthorityAuthorizationManager.denyAll())
         );
 
         return new RequestMatcherDelegatingAuthorizationManager(mappings);
