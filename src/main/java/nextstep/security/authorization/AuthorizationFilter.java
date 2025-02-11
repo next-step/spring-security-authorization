@@ -11,10 +11,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Objects;
 
-public class CheckAuthenticationFilter extends OncePerRequestFilter {
+public class AuthorizationFilter extends OncePerRequestFilter {
     private final RequestMatcherDelegatingAuthorizationManager requestAuthorizationManager;
 
-    public CheckAuthenticationFilter(RequestMatcherDelegatingAuthorizationManager requestAuthorizationManager) {
+    public AuthorizationFilter(RequestMatcherDelegatingAuthorizationManager requestAuthorizationManager) {
         this.requestAuthorizationManager = requestAuthorizationManager;
     }
 

@@ -62,7 +62,7 @@ public class SecurityConfig {
                         new SecurityContextHolderFilter(),
                         new UsernamePasswordAuthenticationFilter(userDetailsService()),
                         new BasicAuthenticationFilter(userDetailsService()),
-                        new CheckAuthenticationFilter(requestMatcherDelegatingAuthorizationManager())
+                        new AuthorizationFilter(requestMatcherDelegatingAuthorizationManager())
                 )
         );
     }
