@@ -4,10 +4,19 @@ import nextstep.app.domain.Member;
 import nextstep.app.domain.MemberRepository;
 import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.authentication.BasicAuthenticationFilter;
+import nextstep.security.authentication.GlobalExceptionFilter;
 import nextstep.security.authentication.UsernamePasswordAuthenticationFilter;
-import nextstep.security.authorization.CheckAuthenticationFilter;
-import nextstep.security.authorization.SecuredAspect;
+import nextstep.security.authorization.AuthenticatedAuthorizationManager;
+import nextstep.security.authorization.AuthorityAuthorizationManager;
+import nextstep.security.authorization.AuthorizationFilter;
+import nextstep.security.authorization.AuthorizationManager;
+import nextstep.security.authorization.DenyAllAuthorizationManager;
+import nextstep.security.authorization.PermitAllAuthorizationManager;
+import nextstep.security.authorization.RequestAuthorizationManager;
+import nextstep.security.authorization.matcher.RequestMatcherEntry;
 import nextstep.security.authorization.SecuredMethodInterceptor;
+import nextstep.security.authorization.matcher.AnyRequestMatcher;
+import nextstep.security.authorization.matcher.MvcRequestMatcher;
 import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.DelegatingFilterProxy;
 import nextstep.security.config.FilterChainProxy;
@@ -18,7 +27,9 @@ import nextstep.security.userdetails.UserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.http.HttpMethod;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -55,12 +66,23 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain() {
         return new DefaultSecurityFilterChain(
                 List.of(
+                        new GlobalExceptionFilter(),
                         new SecurityContextHolderFilter(),
                         new UsernamePasswordAuthenticationFilter(userDetailsService()),
                         new BasicAuthenticationFilter(userDetailsService()),
-                        new CheckAuthenticationFilter()
+                        new AuthorizationFilter(requestAuthorizationManager())
                 )
         );
+    }
+
+    @Bean
+    public RequestAuthorizationManager requestAuthorizationManager() {
+        List<RequestMatcherEntry<AuthorizationManager>> mappings = new ArrayList<>();
+        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members/me"), new AuthenticatedAuthorizationManager()));
+        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members"), new AuthorityAuthorizationManager("ADMIN")));
+        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/search"), new PermitAllAuthorizationManager()));
+        mappings.add(new RequestMatcherEntry<>(AnyRequestMatcher.INSTANCE, new DenyAllAuthorizationManager()));
+        return new RequestAuthorizationManager(mappings);
     }
 
     @Bean
