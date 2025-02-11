@@ -7,6 +7,7 @@ import nextstep.security.authorization.Secured;
 import nextstep.security.context.SecurityContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -41,5 +42,10 @@ public class MemberController {
         Member member = memberRepository.findByEmail(username).orElseThrow(() -> new RuntimeException("User not found"));
 
         return ResponseEntity.ok(member);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<Void> login() {
+        return ResponseEntity.ok().build();
     }
 }
