@@ -1,6 +1,5 @@
 package nextstep.security.authorization.manager;
 
-import jakarta.servlet.http.HttpServletRequest;
 import nextstep.security.authentication.Authentication;
 import nextstep.security.authorization.AuthorizationDecision;
 
@@ -20,12 +19,12 @@ public class AuthorityAuthorizationManager<T> implements AuthorizationManager<T>
         return (authentication, object) -> AuthorizationDecision.ACCESS_GRANTED;
     }
 
-    public AuthorityAuthorizationManager(String... authorities) {
-        this.authorities = Set.of(authorities);
+    public static <T> AuthorizationManager<T> denyAll() {
+        return (authentication, httpServletRequest) -> AuthorizationDecision.ACCESS_DENIED;
     }
 
-    public static AuthorizationManager<HttpServletRequest> denyAll() {
-        return (authentication, httpServletRequest) -> AuthorizationDecision.ACCESS_DENIED;
+    public AuthorityAuthorizationManager(String... authorities) {
+        this.authorities = Set.of(authorities);
     }
 
     @Override
