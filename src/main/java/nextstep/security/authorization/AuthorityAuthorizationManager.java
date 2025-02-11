@@ -3,6 +3,7 @@ package nextstep.security.authorization;
 import jakarta.servlet.http.HttpServletRequest;
 import nextstep.security.authentication.Authentication;
 
+import java.util.Objects;
 import java.util.Set;
 
 public class AuthorityAuthorizationManager implements AuthorizationManager<HttpServletRequest> {
@@ -14,10 +15,13 @@ public class AuthorityAuthorizationManager implements AuthorizationManager<HttpS
 
     @Override
     public AuthorizationDecision check(Authentication authentication, HttpServletRequest object) {
+        if (Objects.isNull(authentication)) {
+            return new AuthorizationDecision(false);
+        }
         Set<String> authorities = authentication.getAuthorities();
 
         if (!authorities.contains(this.authority)) {
-            throw new ForbiddenException();
+            return new AuthorizationDecision(false);
         }
         return new AuthorizationDecision(true);
     }

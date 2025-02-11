@@ -5,11 +5,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import nextstep.security.authentication.Authentication;
-import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Objects;
 
 public class CheckAuthenticationFilter extends OncePerRequestFilter {
     private final RequestMatcherDelegatingAuthorizationManager requestAuthorizationManager;
@@ -20,13 +20,16 @@ public class CheckAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            requestAuthorizationManager.check(authentication, request);
-        } catch (AuthenticationException ae) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (Objects.isNull(authentication)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
-        } catch (ForbiddenException fe) {
+        }
+
+        AuthorizationDecision check = requestAuthorizationManager.check(authentication, request);
+
+        if (!check.isGranted()) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return;
         }

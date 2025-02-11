@@ -6,4 +6,8 @@ public class AuthorizationDecision {
     public AuthorizationDecision(boolean granted) {
         this.granted = granted;
     }
+
+    public boolean isGranted() {
+        return granted;
+    }
 }
