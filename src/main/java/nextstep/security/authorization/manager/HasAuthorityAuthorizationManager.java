@@ -5,7 +5,7 @@ import nextstep.security.authorization.AuthorizationDecision;
 
 import java.util.Collection;
 
-public class AuthoritiesAuthorizationManager implements AuthorizationManager<Collection<String>> {
+public class HasAuthorityAuthorizationManager implements AuthorizationManager<Collection<String>> {
 
     @Override
     public AuthorizationDecision check(Authentication authentication, Collection<String> authorities) {

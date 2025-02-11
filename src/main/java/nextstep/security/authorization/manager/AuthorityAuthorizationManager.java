@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class AuthorityAuthorizationManager<T> implements AuthorizationManager<T> {
 
-    private final AuthoritiesAuthorizationManager delegate = new AuthoritiesAuthorizationManager();
+    private final HasAuthorityAuthorizationManager delegate = new HasAuthorityAuthorizationManager();
 
     private final Set<String> authorities;
 

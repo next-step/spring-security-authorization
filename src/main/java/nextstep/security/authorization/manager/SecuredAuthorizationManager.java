@@ -15,7 +15,7 @@ public class SecuredAuthorizationManager implements AuthorizationManager<MethodI
     private final AuthorizationManager<Collection<String>> authorizationManager;
 
     public SecuredAuthorizationManager() {
-        this.authorizationManager = new AuthoritiesAuthorizationManager();
+        this.authorizationManager = new HasAuthorityAuthorizationManager();
     }
 
     @Override
