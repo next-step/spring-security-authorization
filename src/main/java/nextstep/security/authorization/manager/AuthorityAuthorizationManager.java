@@ -19,7 +19,15 @@ public class AuthorityAuthorizationManager<T> implements AuthorizationManager<T>
     private boolean isGranted(Authentication authentication) {
         return authentication != null
                 && authentication.isAuthenticated()
-                && authentication.getAuthorities().stream()
-                .anyMatch(authorities::contains);
+                && anyMatch(authentication);
+    }
+
+    private boolean anyMatch(Authentication authentication) {
+        for (var authority : authentication.getAuthorities()) {
+            if (authorities.contains(authority)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

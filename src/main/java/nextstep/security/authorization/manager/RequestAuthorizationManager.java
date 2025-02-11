@@ -27,15 +27,21 @@ public class RequestAuthorizationManager implements AuthorizationManager<HttpSer
     }
 
     private boolean noneMatch(HttpServletRequest request) {
-        return entries.stream().noneMatch(
-                entry -> entry.requestMatcher().matches(request)
-        );
+        for (var entry : entries) {
+            if (entry.requestMatcher().matches(request)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private boolean allMatch(Authentication authentication, HttpServletRequest request) {
-        return entries.stream().allMatch(
-                entry -> check(authentication, request, entry)
-        );
+        for (var entry : entries) {
+            if (!check(authentication, request, entry)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private boolean check(
