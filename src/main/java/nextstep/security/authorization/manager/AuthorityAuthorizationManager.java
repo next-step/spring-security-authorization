@@ -12,7 +12,7 @@ public class AuthorityAuthorizationManager<T> implements AuthorizationManager<T>
     }
 
     @Override
-    public AuthorizationDecision check(Authentication authentication, T target) {
+    public AuthorizationResult authorize(Authentication authentication, T target) {
         return AuthorizationDecision.of(isGranted(authentication));
     }
 

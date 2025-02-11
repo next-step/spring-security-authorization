@@ -29,7 +29,7 @@ public class SecuredMethodInterceptor implements MethodInterceptor, PointcutAdvi
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new AuthenticationException();
         }
-        if (!SecuredAuthorizationManager.getInstance().check(
+        if (!SecuredAuthorizationManager.getInstance().authorize(
                 authentication, invocation
         ).isGranted()) {
             throw new ForbiddenException();

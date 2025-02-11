@@ -19,7 +19,7 @@ public class RequestAuthorizationManager implements AuthorizationManager<HttpSer
     }
 
     @Override
-    public AuthorizationDecision check(Authentication authentication, HttpServletRequest target) {
+    public AuthorizationResult authorize(Authentication authentication, HttpServletRequest target) {
         if (noneMatch(target)) {
             return AuthorizationDecision.of(
                     check(authentication, target, defaultEntry)
@@ -53,6 +53,6 @@ public class RequestAuthorizationManager implements AuthorizationManager<HttpSer
             RequestMatcherEntry<AuthorizationManager<HttpServletRequest>> matcherEntry
     ) {
         return !matcherEntry.requestMatcher().matches(request)
-                || matcherEntry.entry().check(authentication, request).isGranted();
+                || matcherEntry.entry().authorize(authentication, request).isGranted();
     }
 }

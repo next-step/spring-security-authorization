@@ -20,10 +20,10 @@ class AuthorityAuthorizationManagerTest {
     @Test
     void notAuthenticated() {
         assertAll(
-                () -> assertThat(manager.check(
+                () -> assertThat(manager.authorize(
                         null, null
                 )).isEqualTo(NOT_GRANTED),
-                () -> assertThat(manager.check(
+                () -> assertThat(manager.authorize(
                         createAuthentication(false), null
                 )).isEqualTo(NOT_GRANTED)
         );
@@ -33,10 +33,10 @@ class AuthorityAuthorizationManagerTest {
     @Test
     void noAuthority() {
         assertAll(
-                () -> assertThat(manager.check(
+                () -> assertThat(manager.authorize(
                         createAuthentication(true, "ADMIN"), null)
                 ).isEqualTo(GRANTED),
-                () -> assertThat(manager.check(
+                () -> assertThat(manager.authorize(
                         createAuthentication(true, "USER"), null)
                 ).isEqualTo(GRANTED)
         );
@@ -45,7 +45,7 @@ class AuthorityAuthorizationManagerTest {
     @DisplayName("인증된 유저가 Authority 를 가지지 못했다면 인가받지 못한다.")
     @Test
     void hasAuthority() {
-        assertThat(manager.check(
+        assertThat(manager.authorize(
                 createAuthentication(true, "ANONYMOUS"), null)
         ).isEqualTo(NOT_GRANTED);
     }

@@ -1,6 +1,6 @@
 package nextstep.security.authorization.manager;
 
-public enum AuthorizationDecision {
+public enum AuthorizationDecision implements AuthorizationResult {
     GRANTED(true), NOT_GRANTED(false);
 
     private final boolean granted;

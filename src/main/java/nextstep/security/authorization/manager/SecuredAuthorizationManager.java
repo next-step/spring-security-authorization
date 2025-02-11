@@ -14,7 +14,7 @@ public class SecuredAuthorizationManager implements AuthorizationManager<MethodI
     }
 
     @Override
-    public AuthorizationDecision check(Authentication authentication, MethodInvocation target) {
+    public AuthorizationResult authorize(Authentication authentication, MethodInvocation target) {
         return AuthorizationDecision.of(hasAuthority(authentication, target.getMethod()));
     }
 

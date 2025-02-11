@@ -29,7 +29,7 @@ public class AuthorizationFilter extends OncePerRequestFilter {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new AuthenticationException();
         }
-        if (!authorizationManager.check(authentication, request).isGranted()) {
+        if (!authorizationManager.authorize(authentication, request).isGranted()) {
             throw new ForbiddenException();
         }
         filterChain.doFilter(request, response);

@@ -18,10 +18,10 @@ class AuthenticatedAuthorizationManagerTest {
     @Test
     void notAuthenticated() {
         assertAll(
-                () -> assertThat(manager.check(
+                () -> assertThat(manager.authorize(
                         null, null
                 )).isEqualTo(NOT_GRANTED),
-                () -> assertThat(manager.check(
+                () -> assertThat(manager.authorize(
                         createAuthentication(false), null
                 )).isEqualTo(NOT_GRANTED)
         );
@@ -30,7 +30,7 @@ class AuthenticatedAuthorizationManagerTest {
     @DisplayName("유저가 인증되었다면 인가받는다.")
     @Test
     void authenticated() {
-        assertThat(manager.check(
+        assertThat(manager.authorize(
                 createAuthentication(true), null)
         ).isEqualTo(GRANTED);
     }

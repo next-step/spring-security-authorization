@@ -11,8 +11,8 @@ class DenyAllAuthorizationManagerTest {
 
     @DisplayName("DenyAll 일 경우 항상 Granted 되어 있지 않다.")
     @Test
-    void check() {
-        assertThat(manager.check(null, null))
+    void authorize() {
+        assertThat(manager.authorize(null, null))
                 .isEqualTo(NOT_GRANTED);
     }
 }

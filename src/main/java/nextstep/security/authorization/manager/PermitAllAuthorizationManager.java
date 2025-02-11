@@ -6,7 +6,7 @@ import static nextstep.security.authorization.manager.AuthorizationDecision.GRAN
 
 public class PermitAllAuthorizationManager<T> implements AuthorizationManager<T> {
     @Override
-    public AuthorizationDecision check(Authentication authentication, T target) {
+    public AuthorizationResult authorize(Authentication authentication, T target) {
         return GRANTED;
     }
 }
