@@ -19,9 +19,11 @@ public class SecuredAuthorizationManager implements AuthorizationManager<MethodI
     }
 
     private boolean hasAuthority(Authentication authentication, Method method) {
+        if (!method.isAnnotationPresent(Secured.class)) {
+            return false;
+        }
         return authentication != null
                 && authentication.isAuthenticated()
-                && method.isAnnotationPresent(Secured.class)
                 && authentication.getAuthorities()
                 .contains(method.getAnnotation(Secured.class).value());
     }
