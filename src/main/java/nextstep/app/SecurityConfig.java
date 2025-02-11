@@ -1,13 +1,23 @@
 package nextstep.app;
 
+import jakarta.servlet.http.HttpServletRequest;
 import nextstep.app.domain.Member;
 import nextstep.app.domain.MemberRepository;
 import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.authentication.BasicAuthenticationFilter;
 import nextstep.security.authentication.UsernamePasswordAuthenticationFilter;
-import nextstep.security.authorization.CheckAuthenticationFilter;
-import nextstep.security.authorization.SecuredAspect;
+import nextstep.security.authorization.AuthorizationFilter;
 import nextstep.security.authorization.SecuredMethodInterceptor;
+import nextstep.security.authorization.access.AnyRequestMatcher;
+import nextstep.security.authorization.access.MvcRequestMatcher;
+import nextstep.security.authorization.access.RequestMatcherEntry;
+import nextstep.security.authorization.manager.AuthenticatedAuthorizationManager;
+import nextstep.security.authorization.manager.DenyAllAuthorizationManager;
+import nextstep.security.authorization.manager.HasAuthorityAuthorizationManager;
+import nextstep.security.authorization.manager.AuthorizationManager;
+import nextstep.security.authorization.manager.PermitAllAuthorizationManager;
+import nextstep.security.authorization.manager.RequestMatcherDelegatingAuthorizationManager;
+import nextstep.security.authorization.manager.SecuredAuthorizationManager;
 import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.DelegatingFilterProxy;
 import nextstep.security.config.FilterChainProxy;
@@ -18,7 +28,9 @@ import nextstep.security.userdetails.UserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.http.HttpMethod;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -43,22 +55,13 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecuredMethodInterceptor securedMethodInterceptor() {
-        return new SecuredMethodInterceptor();
-    }
-//    @Bean
-//    public SecuredAspect securedAspect() {
-//        return new SecuredAspect();
-//    }
-
-    @Bean
     public SecurityFilterChain securityFilterChain() {
         return new DefaultSecurityFilterChain(
                 List.of(
                         new SecurityContextHolderFilter(),
                         new UsernamePasswordAuthenticationFilter(userDetailsService()),
                         new BasicAuthenticationFilter(userDetailsService()),
-                        new CheckAuthenticationFilter()
+                        new AuthorizationFilter(requestAuthorizationManager())
                 )
         );
     }
@@ -86,5 +89,36 @@ public class SecurityConfig {
                 }
             };
         };
+    }
+
+    @Bean
+    public SecuredMethodInterceptor securedMethodInterceptor() {
+        return new SecuredMethodInterceptor(
+                new SecuredAuthorizationManager()
+        );
+    }
+
+    @Bean
+    public RequestMatcherDelegatingAuthorizationManager requestAuthorizationManager() {
+        List<RequestMatcherEntry<AuthorizationManager<HttpServletRequest>>> mappings = new ArrayList<>();
+
+        mappings.add(new RequestMatcherEntry<>(
+                new MvcRequestMatcher(HttpMethod.GET, "/members/me"),
+                new AuthenticatedAuthorizationManager<>())
+        );
+        mappings.add(new RequestMatcherEntry<>(
+                new MvcRequestMatcher(HttpMethod.GET, "/members"),
+                new HasAuthorityAuthorizationManager<>("ADMIN"))
+        );
+        mappings.add(new RequestMatcherEntry<>(
+                new MvcRequestMatcher(HttpMethod.GET, "/search"),
+                new PermitAllAuthorizationManager<>())
+        );
+        mappings.add(new RequestMatcherEntry<>(
+                new AnyRequestMatcher(),
+                new DenyAllAuthorizationManager<>())
+        );
+
+        return new RequestMatcherDelegatingAuthorizationManager(mappings);
     }
 }

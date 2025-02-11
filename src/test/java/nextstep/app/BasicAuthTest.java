@@ -8,10 +8,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Base64;
 import java.util.Set;
@@ -20,10 +23,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
+@Import(BasicAuthTest.TestController.class)
 @AutoConfigureMockMvc
 class BasicAuthTest {
     private final Member TEST_ADMIN_MEMBER = new Member("a@a.com", "password", "a", "", Set.of("ADMIN"));
-    private final Member TEST_USER_MEMBER = new Member("b@b.com", "password", "b", "", Set.of());
+    private final Member TEST_USER_MEMBER = new Member("b@b.com", "password", "b", "", Set.of("USER"));
 
     @Autowired
     private MockMvc mockMvc;
@@ -88,5 +92,52 @@ class BasicAuthTest {
         );
 
         response.andExpect(status().isUnauthorized());
+    }
+
+    @DisplayName("인증된 사용자는 자신의 정보를 조회할 수 있다.")
+    @Test
+    void request_success_members_me() throws Exception {
+        String token = Base64.getEncoder().encodeToString((TEST_ADMIN_MEMBER.getEmail() + ":" + TEST_ADMIN_MEMBER.getPassword()).getBytes());
+
+        ResultActions response = mockMvc.perform(get("/members/me")
+                .header("Authorization", "Basic " + token)
+                .param("email", TEST_ADMIN_MEMBER.getEmail())
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        response.andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.email").value(TEST_ADMIN_MEMBER.getEmail()));
+    }
+
+    @DisplayName("인증되지 않은 사용자는 자신의 정보를 조회할 수 없다.")
+    @Test
+    void request_fail_members_me() throws Exception {
+
+        ResultActions response = mockMvc.perform(get("/members/me")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        response.andExpect(status().isForbidden());
+    }
+
+    @DisplayName("인증이 되었어도, 허가된 요청이 아닌 경우 403 Forbidden을 반환한다.")
+    @Test
+    void request_fail_other_uri() throws Exception {
+        String token = Base64.getEncoder().encodeToString((TEST_ADMIN_MEMBER.getEmail() + ":" + TEST_ADMIN_MEMBER.getPassword()).getBytes());
+
+        ResultActions response = mockMvc.perform(get("/invalid")
+                .header("Authorization", "Basic " + token)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        response.andExpect(status().isForbidden());
+    }
+
+    @RestController
+    static class TestController {
+        @GetMapping("/invalid")
+        public String forbidden() {
+            return "forbidden";
+        }
     }
 }

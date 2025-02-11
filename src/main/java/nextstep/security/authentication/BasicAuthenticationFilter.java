@@ -1,6 +1,7 @@
 package nextstep.security.authentication;
 
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import nextstep.security.context.SecurityContext;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
@@ -26,7 +28,8 @@ public class BasicAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                    FilterChain filterChain) throws IOException, ServletException {
         try {
             Authentication authentication = convert(request);
             if (authentication == null) {
@@ -40,7 +43,7 @@ public class BasicAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.setContext(context);
 
             filterChain.doFilter(request, response);
-        } catch (Exception e) {
+        } catch (AuthenticationException e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         }
     }
