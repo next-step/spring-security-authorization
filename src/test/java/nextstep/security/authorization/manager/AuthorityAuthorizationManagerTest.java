@@ -29,17 +29,20 @@ class AuthorityAuthorizationManagerTest {
         );
     }
 
-    @DisplayName("인증된 유저가 Authority 를 가졌다면 인가받는다.")
+    @DisplayName("인증된 어드민 유저가 Authority 를 가졌다면 인가받는다.")
     @Test
-    void noAuthority() {
-        assertAll(
-                () -> assertThat(manager.authorize(
-                        createAuthentication(true, "ADMIN"), null)
-                ).isEqualTo(GRANTED),
-                () -> assertThat(manager.authorize(
-                        createAuthentication(true, "USER"), null)
-                ).isEqualTo(GRANTED)
-        );
+    void adminNoAuthority() {
+        assertThat(manager.authorize(
+                createAuthentication(true, "ADMIN"), null)
+        ).isEqualTo(GRANTED);
+    }
+
+    @DisplayName("인증된 일반 유저가 Authority 를 가졌다면 인가받는다.")
+    @Test
+    void userNoAuthority() {
+        assertThat(manager.authorize(
+                createAuthentication(true, "USER"), null)
+        ).isEqualTo(GRANTED);
     }
 
     @DisplayName("인증된 유저가 Authority 를 가지지 못했다면 인가받지 못한다.")
