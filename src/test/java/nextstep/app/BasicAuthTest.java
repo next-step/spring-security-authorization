@@ -11,11 +11,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import static nextstep.Fixture.TEST_ADMIN_MEMBER;
-import static nextstep.Fixture.TEST_ADMIN_TOKEN;
-import static nextstep.Fixture.TEST_USER_MEMBER;
-import static nextstep.Fixture.TEST_USER_TOKEN;
-import static nextstep.Fixture.createToken;
+import static nextstep.MemberFixture.TEST_ADMIN_MEMBER;
+import static nextstep.MemberFixture.TEST_USER_MEMBER;
+import static nextstep.TokenFixture.TEST_ADMIN_TOKEN;
+import static nextstep.TokenFixture.TEST_USER_TOKEN;
+import static nextstep.TokenFixture.createToken;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -38,7 +38,7 @@ class BasicAuthTest {
     void request_success_with_admin_user() throws Exception {
         mockMvc.perform(
                 get("/members")
-                        .header("Authorization", TEST_ADMIN_TOKEN)
+                        .header("Authorization", TEST_ADMIN_TOKEN.getToken())
         ).andExpect(
                 status().isOk()
         ).andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(2));
@@ -49,7 +49,7 @@ class BasicAuthTest {
     void request_fail_with_general_user() throws Exception {
         mockMvc.perform(
                 get("/members")
-                        .header("Authorization", TEST_USER_TOKEN)
+                        .header("Authorization", TEST_USER_TOKEN.getToken())
         ).andExpect(status().isForbidden());
     }
 
@@ -86,7 +86,7 @@ class BasicAuthTest {
     void request_success_me_with_member() throws Exception {
         mockMvc.perform(
                 get("/members/me")
-                        .header("Authorization", TEST_USER_TOKEN)
+                        .header("Authorization", TEST_USER_TOKEN.getToken())
         ).andExpect(
                 status().isOk()
         ).andExpect(
@@ -96,7 +96,7 @@ class BasicAuthTest {
 
         mockMvc.perform(
                 get("/members/me")
-                        .header("Authorization", TEST_ADMIN_TOKEN)
+                        .header("Authorization", TEST_ADMIN_TOKEN.getToken())
         ).andExpect(
                 status().isOk()
         ).andExpect(
@@ -110,7 +110,7 @@ class BasicAuthTest {
     void request_success_me_with_admin() throws Exception {
         mockMvc.perform(
                 get("/members/me")
-                        .header("Authorization", TEST_ADMIN_TOKEN)
+                        .header("Authorization", TEST_ADMIN_TOKEN.getToken())
         ).andExpect(
                 status().isOk()
         ).andExpect(

@@ -11,8 +11,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static nextstep.Fixture.TEST_ADMIN_MEMBER;
-import static nextstep.Fixture.TEST_USER_MEMBER;
+import static nextstep.MemberFixture.TEST_ADMIN_MEMBER;
+import static nextstep.MemberFixture.TEST_USER_MEMBER;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
