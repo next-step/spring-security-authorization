@@ -9,9 +9,9 @@ import nextstep.security.authentication.UsernamePasswordAuthenticationFilter;
 import nextstep.security.authorization.AuthorizationFilter;
 import nextstep.security.authorization.SecuredMethodInterceptor;
 import nextstep.security.authorization.manager.AuthenticatedAuthorizationManager;
+import nextstep.security.authorization.manager.AuthorityAuthorizationManager;
 import nextstep.security.authorization.manager.AuthorizationManager;
 import nextstep.security.authorization.manager.DenyAllAuthorizationManager;
-import nextstep.security.authorization.manager.HasAuthorityAuthorizationManager;
 import nextstep.security.authorization.manager.PermitAllAuthorizationManager;
 import nextstep.security.authorization.manager.RequestAuthorizationManager;
 import nextstep.security.config.DefaultSecurityFilterChain;
@@ -60,7 +60,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain() {
         final AuthorizationManager<HttpServletRequest> authorizationManager = new RequestAuthorizationManager(List.of(
-                createMvcMatcher(GET, "/members", new HasAuthorityAuthorizationManager<>("ADMIN")),
+                createMvcMatcher(GET, "/members", new AuthorityAuthorizationManager<>("ADMIN")),
                 createMvcMatcher(GET, "/members/me", new AuthenticatedAuthorizationManager<>()),
                 createMvcMatcher(GET, "/search", new PermitAllAuthorizationManager<>())
         ), createDefaultMatcher(new DenyAllAuthorizationManager<>()));

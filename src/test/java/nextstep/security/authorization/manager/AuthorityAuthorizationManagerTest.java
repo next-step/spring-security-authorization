@@ -11,8 +11,8 @@ import static nextstep.security.authorization.manager.AuthorizationDecision.NOT_
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-class HasAuthorityAuthorizationManagerTest {
-    private final AuthorizationManager<String> manager = new HasAuthorityAuthorizationManager<>(
+class AuthorityAuthorizationManagerTest {
+    private final AuthorizationManager<String> manager = new AuthorityAuthorizationManager<>(
             "ADMIN", "USER"
     );
 

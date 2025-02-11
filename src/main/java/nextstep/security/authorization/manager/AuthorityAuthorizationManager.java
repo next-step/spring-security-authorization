@@ -4,10 +4,10 @@ import nextstep.security.authentication.Authentication;
 
 import java.util.Set;
 
-public class HasAuthorityAuthorizationManager<T> implements AuthorizationManager<T> {
+public class AuthorityAuthorizationManager<T> implements AuthorizationManager<T> {
     private final Set<String> authorities;
 
-    public HasAuthorityAuthorizationManager(String... authorities) {
+    public AuthorityAuthorizationManager(String... authorities) {
         this.authorities = Set.of(authorities);
     }
 
