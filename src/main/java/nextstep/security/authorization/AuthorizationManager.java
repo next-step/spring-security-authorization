@@ -6,4 +6,10 @@ import nextstep.security.authentication.Authentication;
 public interface AuthorizationManager<T> {
 
     AuthorizationDecision check(Authentication authentication, T object);
+
+    default void verify(Authentication authentication, T object) throws ForbiddenException{
+        if (check(authentication, object).isDeny()) {
+            throw new ForbiddenException();
+        }
+    }
 }
