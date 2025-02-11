@@ -15,9 +15,10 @@ public class MvcRequestMatcher implements RequestMatcher {
     }
 
     private Pattern compile(String regex) {
-        return regex == null || regex.isBlank()
-                ? null
-                : Pattern.compile(regex);
+        if (regex == null || regex.isBlank()) {
+            return null;
+        }
+        return Pattern.compile(regex);
     }
 
     @Override

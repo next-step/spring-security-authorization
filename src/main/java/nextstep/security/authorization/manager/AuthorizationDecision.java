@@ -10,7 +10,10 @@ public enum AuthorizationDecision {
     }
 
     public static AuthorizationDecision of(boolean granted) {
-        return granted ? GRANTED : NOT_GRANTED;
+        if (granted) {
+            return GRANTED;
+        }
+        return NOT_GRANTED;
     }
 
     public boolean isGranted() {

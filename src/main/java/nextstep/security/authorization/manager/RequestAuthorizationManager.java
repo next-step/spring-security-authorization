@@ -20,10 +20,14 @@ public class RequestAuthorizationManager implements AuthorizationManager<HttpSer
 
     @Override
     public AuthorizationDecision check(Authentication authentication, HttpServletRequest target) {
-        final boolean isGranted = noneMatch(target)
-                ? check(authentication, target, defaultEntry)
-                : allMatch(authentication, target);
-        return AuthorizationDecision.of(isGranted);
+        if (noneMatch(target)) {
+            return AuthorizationDecision.of(
+                    check(authentication, target, defaultEntry)
+            );
+        }
+        return AuthorizationDecision.of(
+                allMatch(authentication, target)
+        );
     }
 
     private boolean noneMatch(HttpServletRequest request) {
