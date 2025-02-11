@@ -12,8 +12,10 @@ import nextstep.security.authorization.access.AnyRequestMatcher;
 import nextstep.security.authorization.access.MvcRequestMatcher;
 import nextstep.security.authorization.access.RequestMatcherEntry;
 import nextstep.security.authorization.manager.AuthenticatedAuthorizationManager;
-import nextstep.security.authorization.manager.AuthorityAuthorizationManager;
+import nextstep.security.authorization.manager.DenyAllAuthorizationManager;
+import nextstep.security.authorization.manager.HasAuthorityAuthorizationManager;
 import nextstep.security.authorization.manager.AuthorizationManager;
+import nextstep.security.authorization.manager.PermitAllAuthorizationManager;
 import nextstep.security.authorization.manager.RequestMatcherDelegatingAuthorizationManager;
 import nextstep.security.authorization.manager.SecuredAuthorizationManager;
 import nextstep.security.config.DefaultSecurityFilterChain;
@@ -102,18 +104,19 @@ public class SecurityConfig {
 
         mappings.add(new RequestMatcherEntry<>(
                 new MvcRequestMatcher(HttpMethod.GET, "/members/me"),
-                AuthenticatedAuthorizationManager.authenticated())
+                new AuthenticatedAuthorizationManager<>())
         );
         mappings.add(new RequestMatcherEntry<>(
                 new MvcRequestMatcher(HttpMethod.GET, "/members"),
-                AuthorityAuthorizationManager.hasAuthority("ADMIN")));
+                new HasAuthorityAuthorizationManager<>("ADMIN"))
+        );
         mappings.add(new RequestMatcherEntry<>(
                 new MvcRequestMatcher(HttpMethod.GET, "/search"),
-                AuthorityAuthorizationManager.permitAll())
+                new PermitAllAuthorizationManager<>())
         );
         mappings.add(new RequestMatcherEntry<>(
                 new AnyRequestMatcher(),
-                AuthorityAuthorizationManager.denyAll())
+                new DenyAllAuthorizationManager<>())
         );
 
         return new RequestMatcherDelegatingAuthorizationManager(mappings);

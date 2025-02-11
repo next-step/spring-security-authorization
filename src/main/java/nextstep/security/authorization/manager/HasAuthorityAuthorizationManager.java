@@ -4,27 +4,20 @@ import nextstep.security.authentication.Authentication;
 import nextstep.security.authorization.AuthorizationDecision;
 
 import java.util.Collection;
+import java.util.Set;
 
-public class HasAuthorityAuthorizationManager implements AuthorizationManager<Collection<String>> {
+public class HasAuthorityAuthorizationManager<T> implements AuthorizationManager<T> {
+
+    private final AuthorizationManager<Collection<String>> authorizationManager;
+    private final Set<String> authorities;
+
+    public HasAuthorityAuthorizationManager(String... authorities) {
+        this.authorizationManager = new AuthoritiesAuthorizationManager();
+        this.authorities = Set.of(authorities);
+    }
 
     @Override
-    public AuthorizationDecision check(Authentication authentication, Collection<String> authorities) {
-
-        boolean granted = isGranted(authentication, authorities);
-        return new AuthorizationDecision(granted);
-    }
-
-    private boolean isGranted(Authentication authentication, Collection<String> authorities) {
-        return (authentication != null) && hasAuthority(authentication, authorities);
-    }
-
-    private boolean hasAuthority(Authentication authentication, Collection<String> authorities) {
-        for (String authority : authentication.getAuthorities()) {
-            if (authorities.contains(authority)) {
-                return true;
-            }
-        }
-
-        return false;
+    public AuthorizationDecision check(Authentication authentication, T object) {
+        return this.authorizationManager.check(authentication, authorities);
     }
 }

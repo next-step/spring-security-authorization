@@ -5,10 +5,6 @@ import nextstep.security.authorization.AuthorizationDecision;
 
 public class AuthenticatedAuthorizationManager<T> implements AuthorizationManager<T> {
 
-    public static <T> AuthenticatedAuthorizationManager<T> authenticated() {
-        return new AuthenticatedAuthorizationManager<>();
-    }
-
     @Override
     public AuthorizationDecision check(Authentication authentication, T object) {
         boolean granted = isGranted(authentication);
