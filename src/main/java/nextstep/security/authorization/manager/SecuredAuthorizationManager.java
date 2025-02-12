@@ -2,14 +2,19 @@ package nextstep.security.authorization.manager;
 
 import nextstep.security.authentication.Authentication;
 import nextstep.security.authorization.AuthorizationDecision;
-import nextstep.security.authorization.ForbiddenException;
 import nextstep.security.authorization.Secured;
 import org.aopalliance.intercept.MethodInvocation;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.util.Set;
 
 public class SecuredAuthorizationManager implements AuthorizationManager<MethodInvocation> {
+
+    private final AuthorityAuthorizationManager<Set<String>> authorityAuthorizationManager;
+
+    public SecuredAuthorizationManager(AuthorityAuthorizationManager<Set<String>> authorityAuthorizationManager) {
+        this.authorityAuthorizationManager = authorityAuthorizationManager;
+    }
 
     @Override
     public AuthorizationDecision check(Authentication authentication, MethodInvocation methodInvocation) {
@@ -21,12 +26,7 @@ public class SecuredAuthorizationManager implements AuthorizationManager<MethodI
 
         if (method.isAnnotationPresent(Secured.class)) {
             Secured secured = method.getAnnotation(Secured.class);
-            boolean hasNoRole = authentication.getAuthorities()
-                    .stream()
-                    .noneMatch(auth -> Arrays.asList(secured.value()).contains(auth));
-            if (hasNoRole) {
-                throw new ForbiddenException();
-            }
+            return authorityAuthorizationManager.check(authentication, Set.of(secured.value()));
         }
 
         return AuthorizationDecision.granted();
