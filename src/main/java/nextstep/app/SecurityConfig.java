@@ -1,13 +1,19 @@
 package nextstep.app;
 
+import jakarta.servlet.http.HttpServletRequest;
 import nextstep.app.domain.Member;
 import nextstep.app.domain.MemberRepository;
 import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.authentication.BasicAuthenticationFilter;
 import nextstep.security.authentication.UsernamePasswordAuthenticationFilter;
-import nextstep.security.authorization.CheckAuthenticationFilter;
-import nextstep.security.authorization.SecuredAspect;
+import nextstep.security.authorization.AuthorizationFilter;
 import nextstep.security.authorization.SecuredMethodInterceptor;
+import nextstep.security.authorization.manager.AuthenticatedAuthorizationManager;
+import nextstep.security.authorization.manager.AuthorityAuthorizationManager;
+import nextstep.security.authorization.manager.AuthorizationManager;
+import nextstep.security.authorization.manager.DenyAllAuthorizationManager;
+import nextstep.security.authorization.manager.PermitAllAuthorizationManager;
+import nextstep.security.authorization.manager.RequestAuthorizationManager;
 import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.DelegatingFilterProxy;
 import nextstep.security.config.FilterChainProxy;
@@ -21,6 +27,10 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 import java.util.List;
 import java.util.Set;
+
+import static nextstep.security.authorization.matcher.RequestMatcherEntry.createDefaultMatcher;
+import static nextstep.security.authorization.matcher.RequestMatcherEntry.createMvcMatcher;
+import static org.springframework.http.HttpMethod.GET;
 
 @EnableAspectJAutoProxy
 @Configuration
@@ -46,19 +56,20 @@ public class SecurityConfig {
     public SecuredMethodInterceptor securedMethodInterceptor() {
         return new SecuredMethodInterceptor();
     }
-//    @Bean
-//    public SecuredAspect securedAspect() {
-//        return new SecuredAspect();
-//    }
 
     @Bean
     public SecurityFilterChain securityFilterChain() {
+        final AuthorizationManager<HttpServletRequest> authorizationManager = new RequestAuthorizationManager(List.of(
+                createMvcMatcher(GET, "/members", new AuthorityAuthorizationManager<>("ADMIN")),
+                createMvcMatcher(GET, "/members/me", new AuthenticatedAuthorizationManager<>()),
+                createMvcMatcher(GET, "/search", new PermitAllAuthorizationManager<>())
+        ), createDefaultMatcher(new DenyAllAuthorizationManager<>()));
         return new DefaultSecurityFilterChain(
                 List.of(
                         new SecurityContextHolderFilter(),
                         new UsernamePasswordAuthenticationFilter(userDetailsService()),
                         new BasicAuthenticationFilter(userDetailsService()),
-                        new CheckAuthenticationFilter()
+                        new AuthorizationFilter(authorizationManager)
                 )
         );
     }
