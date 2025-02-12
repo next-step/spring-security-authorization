@@ -9,8 +9,8 @@ public class AuthenticatedAuthorizationManager implements AuthorizationManager<H
     @Override
     public AuthorizationDecision check(Authentication authentication, HttpServletRequest object) {
         if (authentication != null && authentication.isAuthenticated()) {
-            return new AuthorizationDecision(true);
+            return AuthorizationDecision.ALLOW;
         }
-        return new AuthorizationDecision(false);
+        return AuthorizationDecision.DENY;
     }
 }

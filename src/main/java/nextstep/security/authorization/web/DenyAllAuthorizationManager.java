@@ -8,6 +8,6 @@ import nextstep.security.authorization.AuthorizationManager;
 public class DenyAllAuthorizationManager implements AuthorizationManager<HttpServletRequest> {
     @Override
     public AuthorizationDecision check(Authentication authentication, HttpServletRequest object) {
-        return new AuthorizationDecision(false);
+        return AuthorizationDecision.DENY;
     }
 }

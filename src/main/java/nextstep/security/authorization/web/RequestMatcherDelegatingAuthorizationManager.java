@@ -10,8 +10,6 @@ import nextstep.security.util.RequestMatcherEntry;
 
 public class RequestMatcherDelegatingAuthorizationManager implements AuthorizationManager<HttpServletRequest> {
 
-    private static final AuthorizationDecision DENY = new AuthorizationDecision(false);
-
     private final List<RequestMatcherEntry<AuthorizationManager>> mappings;
 
     public RequestMatcherDelegatingAuthorizationManager(List<RequestMatcherEntry<AuthorizationManager>> mappings) {
@@ -25,6 +23,6 @@ public class RequestMatcherDelegatingAuthorizationManager implements Authorizati
                 return mapping.getEntry().check(authentication, request);
             }
         }
-        return DENY;
+        return AuthorizationDecision.DENY;
     }
 }

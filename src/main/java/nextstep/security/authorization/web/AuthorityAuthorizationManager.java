@@ -24,7 +24,7 @@ public class AuthorityAuthorizationManager implements AuthorizationManager<HttpS
         boolean hasAuthority = authentication.getAuthorities().stream()
                 .anyMatch(authority::equals);
 
-        return new AuthorizationDecision(hasAuthority);
+        return AuthorizationDecision.of(hasAuthority);
 
     }
 }

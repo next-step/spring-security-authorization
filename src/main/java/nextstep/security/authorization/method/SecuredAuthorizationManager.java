@@ -22,7 +22,7 @@ public class SecuredAuthorizationManager implements AuthorizationManager<MethodI
         boolean hasAuthority = authentication.getAuthorities().stream()
                 .anyMatch(authorities::contains);
 
-        return new AuthorizationDecision(hasAuthority);
+        return AuthorizationDecision.of(hasAuthority);
     }
 
     private Set<String> getAuthorities(MethodInvocation invocation) {
