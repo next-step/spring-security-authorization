@@ -12,12 +12,14 @@ import nextstep.security.authorization.access.AnyRequestMatcher;
 import nextstep.security.authorization.access.MvcRequestMatcher;
 import nextstep.security.authorization.access.RequestMatcherEntry;
 import nextstep.security.authorization.manager.AuthenticatedAuthorizationManager;
+import nextstep.security.authorization.manager.AuthorizationManager;
 import nextstep.security.authorization.manager.DenyAllAuthorizationManager;
 import nextstep.security.authorization.manager.HasAuthorityAuthorizationManager;
-import nextstep.security.authorization.manager.AuthorizationManager;
 import nextstep.security.authorization.manager.PermitAllAuthorizationManager;
 import nextstep.security.authorization.manager.RequestMatcherDelegatingAuthorizationManager;
 import nextstep.security.authorization.manager.SecuredAuthorizationManager;
+import nextstep.security.authorization.role.RoleHierarchy;
+import nextstep.security.authorization.role.RoleHierarchyImpl;
 import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.DelegatingFilterProxy;
 import nextstep.security.config.FilterChainProxy;
@@ -94,7 +96,7 @@ public class SecurityConfig {
     @Bean
     public SecuredMethodInterceptor securedMethodInterceptor() {
         return new SecuredMethodInterceptor(
-                new SecuredAuthorizationManager()
+                new SecuredAuthorizationManager(roleHierarchy())
         );
     }
 
@@ -108,17 +110,37 @@ public class SecurityConfig {
         );
         mappings.add(new RequestMatcherEntry<>(
                 new MvcRequestMatcher(HttpMethod.GET, "/members"),
-                new HasAuthorityAuthorizationManager<>("ADMIN"))
+                new HasAuthorityAuthorizationManager<>(roleHierarchy(), "ADMIN"))
         );
         mappings.add(new RequestMatcherEntry<>(
                 new MvcRequestMatcher(HttpMethod.GET, "/search"),
                 new PermitAllAuthorizationManager<>())
         );
+
+        // -- for test
+        mappings.add(new RequestMatcherEntry<>(
+                new MvcRequestMatcher(HttpMethod.GET, "/user-granted"),
+                new HasAuthorityAuthorizationManager<>(roleHierarchy(), "USER"))
+        );
+
+        mappings.add(new RequestMatcherEntry<>(
+                new MvcRequestMatcher(HttpMethod.GET, "/admin-granted"),
+                new HasAuthorityAuthorizationManager<>(roleHierarchy(), "ADMIN"))
+        );
+        //
+
         mappings.add(new RequestMatcherEntry<>(
                 new AnyRequestMatcher(),
                 new DenyAllAuthorizationManager<>())
         );
 
         return new RequestMatcherDelegatingAuthorizationManager(mappings);
+    }
+
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        return RoleHierarchyImpl.with()
+                .role("ADMIN").implies("USER")
+                .build();
     }
 }

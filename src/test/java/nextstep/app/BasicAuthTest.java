@@ -2,6 +2,7 @@ package nextstep.app;
 
 import nextstep.app.domain.Member;
 import nextstep.app.domain.MemberRepository;
+import nextstep.security.authorization.Secured;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -133,11 +134,50 @@ class BasicAuthTest {
         response.andExpect(status().isForbidden());
     }
 
+    @DisplayName("USER 권한을 가진 사용자가 ADMIN 권한 api를 요청할 경우 403 Forbidden을 반환한다.")
+    @Test
+    void request_fail_with_user_permission() throws Exception {
+        String token = Base64.getEncoder().encodeToString((TEST_USER_MEMBER.getEmail() + ":" + TEST_USER_MEMBER.getPassword()).getBytes());
+
+        ResultActions response = mockMvc.perform(get("/admin-granted")
+                .header("Authorization", "Basic " + token)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        response.andExpect(status().isForbidden());
+    }
+
+    @DisplayName("ADMIN 권한을 가진 사용자가 USER 권한 api를 요청할 경우 정상 동작한다.")
+    @Test
+    void request_success_with_user_granted_with_admin_permission() throws Exception {
+        String token = Base64.getEncoder().encodeToString((TEST_ADMIN_MEMBER.getEmail() + ":" + TEST_ADMIN_MEMBER.getPassword()).getBytes());
+
+        ResultActions response = mockMvc.perform(get("/user-granted")
+                .header("Authorization", "Basic " + token)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        response.andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string("userGranted"));
+    }
+
     @RestController
     static class TestController {
         @GetMapping("/invalid")
         public String forbidden() {
             return "forbidden";
+        }
+
+        @Secured("USER")
+        @GetMapping("/user-granted")
+        public String userGranted() {
+            return "userGranted";
+        }
+
+        @Secured("ADMIN")
+        @GetMapping("/admin-granted")
+        public String adminGranted() {
+            return "adminGranted";
         }
     }
 }

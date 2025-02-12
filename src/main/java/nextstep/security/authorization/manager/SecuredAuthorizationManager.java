@@ -3,6 +3,7 @@ package nextstep.security.authorization.manager;
 import nextstep.security.authentication.Authentication;
 import nextstep.security.authorization.AuthorizationDecision;
 import nextstep.security.authorization.Secured;
+import nextstep.security.authorization.role.RoleHierarchy;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.core.annotation.AnnotationUtils;
 
@@ -16,6 +17,10 @@ public class SecuredAuthorizationManager implements AuthorizationManager<MethodI
 
     public SecuredAuthorizationManager() {
         this.authorizationManager = new AuthoritiesAuthorizationManager();
+    }
+
+    public SecuredAuthorizationManager(RoleHierarchy roleHierarchy) {
+        this.authorizationManager = new AuthoritiesAuthorizationManager(roleHierarchy);
     }
 
     @Override

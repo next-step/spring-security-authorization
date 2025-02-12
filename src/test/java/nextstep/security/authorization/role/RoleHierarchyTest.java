@@ -54,4 +54,22 @@ public class RoleHierarchyTest {
         );
 
     }
+
+    @Test
+    void buildWithDsl() {
+        RoleHierarchy roleHierarchy = RoleHierarchyImpl.with()
+                .role("ROLE_ADMIN").implies("ROLE_USER")
+                .role("ROLE_USER").implies("ROLE_GUEST")
+                .build();
+
+        List<String> reachableAuthorities =
+                roleHierarchy.getReachableGrantedAuthorities(Set.of(new SimpleGrantedAuthority("ROLE_ADMIN")))
+                        .stream().map(GrantedAuthority::getAuthority).toList();
+
+        Assertions.assertThat(reachableAuthorities).containsExactlyInAnyOrder(
+                "ROLE_ADMIN",
+                "ROLE_USER",
+                "ROLE_GUEST"
+        );
+    }
 }

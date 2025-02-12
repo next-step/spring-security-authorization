@@ -2,8 +2,6 @@ package nextstep.security.authorization.role;
 
 import nextstep.security.SimpleGrantedAuthority;
 import nextstep.security.authorization.GrantedAuthority;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -16,7 +14,6 @@ import java.util.Set;
 
 public class RoleHierarchyImpl implements RoleHierarchy {
 
-    private static final Logger logger = LoggerFactory.getLogger(RoleHierarchyImpl.class);
     private final Map<String, Set<GrantedAuthority>> reachableAuthoritiesMap;
 
     private RoleHierarchyImpl(Map<String, Set<GrantedAuthority>> reachableAuthoritiesMap) {
@@ -26,6 +23,10 @@ public class RoleHierarchyImpl implements RoleHierarchy {
     public static RoleHierarchyImpl fromHierarchy(String hierarchy) {
         Map<String, Set<GrantedAuthority>> reachableAuthoritiesMap = convertHierarchicalRoles(hierarchy);
         return new RoleHierarchyImpl(reachableAuthoritiesMap);
+    }
+
+    public static Builder with() {
+        return new Builder();
     }
 
     private static Map<String, Set<GrantedAuthority>> convertHierarchicalRoles(String hierarchy) {
@@ -68,5 +69,38 @@ public class RoleHierarchyImpl implements RoleHierarchy {
         }
 
         return result;
+    }
+
+    public static class Builder {
+        private final Map<String, Set<GrantedAuthority>> hierarchy = new HashMap<>();
+
+        public ImpliedRoles role(String parent) {
+            return new ImpliedRoles(parent);
+        }
+
+        public RoleHierarchyImpl build() {
+            return new RoleHierarchyImpl(hierarchy);
+        }
+
+        private Builder addHierarchy(String role, String... children) {
+            Set<GrantedAuthority> authorities = hierarchy.computeIfAbsent(role, k -> new HashSet<>());
+            for (String child : children) {
+                authorities.add(new SimpleGrantedAuthority(child));
+            }
+
+            return this;
+        }
+
+        public final class ImpliedRoles {
+            private final String parent;
+
+            public ImpliedRoles(String parent) {
+                this.parent = parent;
+            }
+
+            public Builder implies(String... children) {
+                return Builder.this.addHierarchy(parent, children);
+            }
+        }
     }
 }
