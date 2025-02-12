@@ -1,7 +1,6 @@
 package nextstep.security.authorization;
 
 import nextstep.security.authentication.Authentication;
-import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.authorization.manager.AuthorizationManager;
 import nextstep.security.context.SecurityContextHolder;
 import org.aopalliance.aop.Advice;
@@ -17,6 +16,7 @@ public class SecuredMethodInterceptor implements MethodInterceptor, PointcutAdvi
 
     private final Pointcut pointcut;
     private final AuthorizationManager<MethodInvocation> authorizationManager;
+
     public SecuredMethodInterceptor(AuthorizationManager<MethodInvocation> authorizationManager) {
         this.authorizationManager = authorizationManager;
         this.pointcut = new AnnotationMatchingPointcut(null, Secured.class);
@@ -25,11 +25,7 @@ public class SecuredMethodInterceptor implements MethodInterceptor, PointcutAdvi
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        AuthorizationDecision authorizationDecision = authorizationManager.check(authentication, invocation);
-        if (authorizationDecision.isDenied()) {
-            throw new AuthenticationException();
-        }
-
+        authorizationManager.verify(authentication, invocation);
         return invocation.proceed();
     }
 

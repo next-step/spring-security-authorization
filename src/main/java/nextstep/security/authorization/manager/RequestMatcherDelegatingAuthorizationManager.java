@@ -16,6 +16,18 @@ public class RequestMatcherDelegatingAuthorizationManager {
         this.mapping = mapping;
     }
 
+    public void verifyInFilter(HttpServletRequest request, Authentication authentication) {
+        var requestMatcherEntry = mapping.stream()
+                .filter(it -> Objects.nonNull(it.getMatcher()))
+                .filter(it -> it.getMatcher().matches(request))
+                .filter(it -> Objects.nonNull(it.getEntry()))
+                .findFirst();
+
+        requestMatcherEntry.ifPresent(it
+                -> it.getEntry().verify(authentication, request));
+    }
+
+    @Deprecated
     public AuthorizationDecision checkInFilter(HttpServletRequest request, Authentication authentication) {
         return mapping.stream()
                 .filter(it -> Objects.nonNull(it.getMatcher()))

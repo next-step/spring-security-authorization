@@ -5,7 +5,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import nextstep.security.authentication.Authentication;
-import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.authorization.manager.RequestMatcherDelegatingAuthorizationManager;
 import nextstep.security.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -23,11 +22,7 @@ public class AuthorizationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        AuthorizationDecision authorizationDecision = authorizationManager.checkInFilter(request, authentication);
-        if (authorizationDecision.isDenied()) {
-            throw new AuthenticationException();
-        }
-
+        authorizationManager.verifyInFilter(request, authentication);
         filterChain.doFilter(request, response);
     }
 }
