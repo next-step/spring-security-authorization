@@ -5,7 +5,6 @@ import nextstep.security.authorization.GrantedAuthority;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
