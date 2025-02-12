@@ -20,15 +20,23 @@ public class CheckAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        AuthorizationDecision authorizationDecision = requestMatcherDelegatingAuthorizationManager.check(authentication, request);
-
-        if (authorizationDecision.isDeny()) {
+        try {
+            AuthorizationDecision authorizationDecision = authorizationManager.check(authentication, request);
+            authorizationCheck(authorizationDecision);
+        } catch (ForbiddenException e) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private static void authorizationCheck(AuthorizationDecision authorizationDecision) {
+        if (authorizationDecision.isDeny()) {
+            throw new ForbiddenException();
+        }
     }
 }
