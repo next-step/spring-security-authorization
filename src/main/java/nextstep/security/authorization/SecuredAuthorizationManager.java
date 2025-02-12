@@ -2,6 +2,7 @@ package nextstep.security.authorization;
 
 import nextstep.security.authentication.Authentication;
 import nextstep.security.authentication.AuthenticationException;
+import nextstep.security.authorization.hierarchy.RoleHierarchy;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.support.AopUtils;
 
@@ -10,7 +11,11 @@ import java.util.List;
 import java.util.Optional;
 
 public class SecuredAuthorizationManager implements AuthorizationManager<MethodInvocation> {
-    private final AuthoritiesAuthorizationManager authoritiesAuthorizationManager = new AuthoritiesAuthorizationManager();
+    private final AuthoritiesAuthorizationManager authoritiesAuthorizationManager;
+
+    public SecuredAuthorizationManager(final RoleHierarchy roleHierarchy) {
+        this.authoritiesAuthorizationManager = new AuthoritiesAuthorizationManager(roleHierarchy);
+    }
 
     @Override
     public AuthorizationDecision check(final Authentication authentication, final MethodInvocation invocation) {

@@ -1,16 +1,18 @@
 package nextstep.security.authorization;
 
 import nextstep.security.authentication.Authentication;
+import nextstep.security.authorization.hierarchy.RoleHierarchy;
 
 import java.util.Set;
 
 public class AuthorityAuthorizationManager<T> implements AuthorizationManager<T> {
-    private final AuthoritiesAuthorizationManager delegate = new AuthoritiesAuthorizationManager();
+    private final AuthoritiesAuthorizationManager delegate;
 
     private final String authority;
 
-    public AuthorityAuthorizationManager(String authority) {
+    public AuthorityAuthorizationManager(String authority, RoleHierarchy roleHierarchy) {
         this.authority = authority;
+        this.delegate = new AuthoritiesAuthorizationManager(roleHierarchy);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package nextstep.security.authorization;
 
 import nextstep.security.authentication.Authentication;
+import nextstep.security.authorization.hierarchy.RoleHierarchy;
 import nextstep.security.context.SecurityContextHolder;
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
@@ -11,12 +12,13 @@ import org.springframework.aop.framework.AopInfrastructureBean;
 import org.springframework.aop.support.annotation.AnnotationMatchingPointcut;
 
 public class SecuredMethodInterceptor implements MethodInterceptor, PointcutAdvisor, AopInfrastructureBean {
-    private final AuthorizationManager<MethodInvocation> authorizationManager = new SecuredAuthorizationManager();
+    private final AuthorizationManager<MethodInvocation> authorizationManager;
 
     private final Pointcut pointcut;
 
-    public SecuredMethodInterceptor() {
+    public SecuredMethodInterceptor(RoleHierarchy roleHierarchy) {
         this.pointcut = new AnnotationMatchingPointcut(null, Secured.class);
+        this.authorizationManager = new SecuredAuthorizationManager(roleHierarchy);
     }
 
     @Override
