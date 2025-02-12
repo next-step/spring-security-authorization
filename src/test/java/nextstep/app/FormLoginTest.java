@@ -75,7 +75,7 @@ class FormLoginTest {
     void request_fail_members_me() throws Exception {
         mockMvc.perform(get("/members/me")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-        ).andExpect(status().isForbidden());
+        ).andExpect(status().isUnauthorized());
     }
 
     @DisplayName("로그인 성공")

@@ -9,7 +9,6 @@ public class RequestAuthorizationManager implements AuthorizationManager<HttpSer
 
     private List<RequestMatcherEntry<AuthorizationManager>> matcherEntries;
 
-
     public RequestAuthorizationManager(List<RequestMatcherEntry<AuthorizationManager>> mappings) {
         this.matcherEntries = mappings;
     }

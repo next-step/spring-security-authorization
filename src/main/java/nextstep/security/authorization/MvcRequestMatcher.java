@@ -22,7 +22,7 @@ public class MvcRequestMatcher implements RequestMatcher {
         return equals(requestMethod, requestUri);
     }
 
-    public boolean equals(final HttpMethod requestMethod, final String requestUri) {
+    private boolean equals(final HttpMethod requestMethod, final String requestUri) {
         return this.httpMethod.equals(requestMethod) && this.uri.equals(requestUri);
     }
 }
