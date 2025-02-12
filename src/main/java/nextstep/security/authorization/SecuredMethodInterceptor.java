@@ -1,7 +1,7 @@
 package nextstep.security.authorization;
 
 import nextstep.security.authentication.Authentication;
-import nextstep.security.authentication.AuthenticationException;
+import nextstep.security.authorization.web.AuthorizationResult;
 import nextstep.security.context.SecurityContextHolder;
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
@@ -10,8 +10,6 @@ import org.springframework.aop.Pointcut;
 import org.springframework.aop.PointcutAdvisor;
 import org.springframework.aop.framework.AopInfrastructureBean;
 import org.springframework.aop.support.annotation.AnnotationMatchingPointcut;
-
-import java.lang.reflect.Method;
 
 public class SecuredMethodInterceptor implements MethodInterceptor, PointcutAdvisor, AopInfrastructureBean {
 
@@ -26,9 +24,9 @@ public class SecuredMethodInterceptor implements MethodInterceptor, PointcutAdvi
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        AuthorizationDecision authorizationDecision = authorizationManager.check(authentication, invocation);
+        AuthorizationResult authorizationResult = authorizationManager.authorize(authentication, invocation);
 
-        if (!authorizationDecision.isGranted()) {
+        if (!authorizationResult.isGranted()) {
             throw new ForbiddenException();
         }
 

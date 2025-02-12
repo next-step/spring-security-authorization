@@ -1,6 +1,7 @@
 package nextstep.security.authorization;
 
 import nextstep.security.authentication.Authentication;
+import nextstep.security.authorization.web.AuthorizationResult;
 import nextstep.security.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -22,9 +23,9 @@ public class AuthorizationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        AuthorizationDecision authorizationDecision = authorizationManager.check(authentication, request);
+        AuthorizationResult authorizeResult = authorizationManager.authorize(authentication, request);
 
-        if (!authorizationDecision.isGranted()) {
+        if (!authorizeResult.isGranted()) {
             throw new ForbiddenException();
         }
 

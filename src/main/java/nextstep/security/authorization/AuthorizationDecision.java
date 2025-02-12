@@ -1,7 +1,12 @@
 package nextstep.security.authorization;
 
-public class AuthorizationDecision {
-    private final boolean isGranted;
+import nextstep.security.authorization.web.AuthorizationResult;
+
+public class AuthorizationDecision implements AuthorizationResult {
+    public static final AuthorizationDecision ALLOW = new AuthorizationDecision(true);
+    public static final AuthorizationDecision DENY = new AuthorizationDecision(false);
+
+    private final boolean granted;
 
     public AuthorizationDecision(boolean granted) {
         this.granted = granted;
