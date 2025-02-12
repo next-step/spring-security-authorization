@@ -1,30 +1,38 @@
 package nextstep.security.authorization.web;
 
-import jakarta.servlet.http.HttpServletRequest;
+import java.util.Collection;
 import nextstep.security.authentication.Authentication;
 import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.authorization.AuthorizationDecision;
 import nextstep.security.authorization.AuthorizationManager;
-import nextstep.security.authorization.ForbiddenException;
 
-public class AuthorityAuthorizationManager implements AuthorizationManager<HttpServletRequest> {
+public class AuthorityAuthorizationManager<T> implements AuthorizationManager<T> {
 
-    private final String authority;
+    private final Collection<String> authorities;
 
-    public AuthorityAuthorizationManager(String authority) {
-        this.authority = authority;
+    public AuthorityAuthorizationManager(Collection<String> authorities) {
+        this.authorities = authorities;
     }
 
+
     @Override
-    public AuthorizationDecision check(Authentication authentication, HttpServletRequest object) {
+    public AuthorizationDecision check(Authentication authentication, T object) {
         if (authentication == null) {
             throw new AuthenticationException();
         }
 
-        boolean hasAuthority = authentication.getAuthorities().stream()
-                .anyMatch(authority::equals);
+        boolean hasAuthority = isAuthorized(authentication, authorities);
 
         return AuthorizationDecision.of(hasAuthority);
+    }
 
+
+    private boolean isAuthorized(Authentication authentication, Collection<String> authorities) {
+        for (String authority : authentication.getAuthorities()) {
+            if (authorities.contains(authority)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

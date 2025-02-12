@@ -60,21 +60,16 @@ public class SecurityConfig {
         return new SecuredMethodInterceptor(securedAuthorizationManager());
     }
 
-//    @Bean
-//    public SecuredAspect securedAspect() {
-//        return new SecuredAspect();
-//    }
-
     @Bean
     public AuthorizationManager<MethodInvocation> securedAuthorizationManager() {
-        return new SecuredAuthorizationManager();
+         return new SecuredAuthorizationManager();
     }
 
     @Bean
     public AuthorizationManager<HttpServletRequest> requestAuthorizationManager() {
         List<RequestMatcherEntry<AuthorizationManager>> mappings = new ArrayList<>();
         mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members"),
-                new AuthorityAuthorizationManager("ADMIN")));
+                new AuthorityAuthorizationManager<HttpServletRequest>(Set.of("ADMIN"))));
         mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members/me"),
                 new AuthenticatedAuthorizationManager()));
         mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/search"),
