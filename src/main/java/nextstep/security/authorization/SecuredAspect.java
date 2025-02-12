@@ -9,6 +9,7 @@ import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.reflect.MethodSignature;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 @Aspect
 public class SecuredAspect {
@@ -16,12 +17,16 @@ public class SecuredAspect {
     @Before("@annotation(nextstep.security.authorization.Secured)")
     public void checkSecured(JoinPoint joinPoint) throws NoSuchMethodException {
         Method method = getMethodFromJoinPoint(joinPoint);
-        String secured = method.getAnnotation(Secured.class).value();
+        String[] secured = method.getAnnotation(Secured.class).value();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
             throw new AuthenticationException();
         }
-        if (!authentication.getAuthorities().contains(secured)) {
+
+        boolean hasNoRole = authentication.getAuthorities()
+                .stream()
+                .noneMatch(auth -> Arrays.asList(secured).contains(auth));
+        if (hasNoRole) {
             throw new ForbiddenException();
         }
     }
