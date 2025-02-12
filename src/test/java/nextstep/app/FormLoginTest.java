@@ -12,18 +12,23 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.Set;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 class FormLoginTest {
-    private final Member TEST_ADMIN_MEMBER = new Member("a@a.com", "password", "a", "", Set.of("ADMIN"));
-    private final Member TEST_USER_MEMBER = new Member("b@b.com", "password", "b", "", Set.of());
+    private static final String USER_ROLE = "USER";
+    private static final String ADMIN_ROLE = "ADMIN";
+
+    private final Member TEST_ADMIN_MEMBER = new Member("a@a.com", "password", "a", "", Set.of(ADMIN_ROLE));
+    private final Member TEST_USER_MEMBER = new Member("b@b.com", "password", "b", "", Set.of(USER_ROLE));
 
     @Autowired
     private MockMvc mockMvc;
@@ -115,5 +120,95 @@ class FormLoginTest {
         );
 
         membersResponse.andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("인증된 사용자는 자신의 정보를 조회할 수 있다.")
+    void request_success_members_me() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+
+        mockMvc.perform(post("/login")
+                .param("username", TEST_USER_MEMBER.getEmail())
+                .param("password", TEST_USER_MEMBER.getPassword())
+                .session(session)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        ).andExpect(status().isOk());
+
+        mockMvc.perform(get("/members/me")
+                        .session(session)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value(TEST_USER_MEMBER.getEmail()))
+                .andExpect(jsonPath("$.password").value(TEST_USER_MEMBER.getPassword()))
+                .andExpect(jsonPath("$.name").value(TEST_USER_MEMBER.getName()))
+                .andExpect(jsonPath("$.roles").value(USER_ROLE))
+                .andExpect(jsonPath("$.imageUrl").value(TEST_USER_MEMBER.getImageUrl()));
+    }
+
+    @Test
+    @DisplayName("인증되지 않은 사용자는 자신의 정보를 조회할 수 없다.")
+    void request_fail_members_me() throws Exception {
+        mockMvc.perform(get("/members/me")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        ).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("ADMIN 권한을 가진 사용자가 요청할 경우 모든 회원 정보를 조회할 수 있다.")
+    void request_search_success_with_admin_user() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+
+        mockMvc.perform(post("/login")
+                .param("username", TEST_ADMIN_MEMBER.getEmail())
+                .param("password", TEST_ADMIN_MEMBER.getPassword())
+                .session(session)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        ).andExpect(status().isOk());
+
+        mockMvc.perform(get("/members")
+                        .session(session)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                )
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(2));
+    }
+
+    @Test
+    @DisplayName("제한된 URI은 ADMIN 이여도 접근할수 없다")
+    void request_private_with_admin_user() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+
+        mockMvc.perform(post("/login")
+                .param("username", TEST_ADMIN_MEMBER.getEmail())
+                .param("password", TEST_ADMIN_MEMBER.getPassword())
+                .session(session)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        ).andExpect(status().isOk());
+
+        mockMvc.perform(post("/private")
+                        .session(session)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                )
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("제한된 URI은 접근할수 없다")
+    void request_private_with_user_user() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+
+        mockMvc.perform(post("/login")
+                .param("username", TEST_USER_MEMBER.getEmail())
+                .param("password", TEST_USER_MEMBER.getPassword())
+                .session(session)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        ).andExpect(status().isOk());
+
+        mockMvc.perform(post("/private")
+                        .session(session)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                )
+                .andExpect(status().isForbidden());
     }
 }
