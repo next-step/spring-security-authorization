@@ -12,10 +12,10 @@ import java.io.IOException;
 
 public class CheckAuthenticationFilter extends OncePerRequestFilter {
 
-    private final RequestMatcherDelegatingAuthorizationManager requestMatcherDelegatingAuthorizationManager;
+    private final AuthorizationManager<HttpServletRequest> authorizationManager;
 
-    public CheckAuthenticationFilter(RequestMatcherDelegatingAuthorizationManager requestMatcherDelegatingAuthorizationManager) {
-        this.requestMatcherDelegatingAuthorizationManager = requestMatcherDelegatingAuthorizationManager;
+    public CheckAuthenticationFilter(AuthorizationManager<HttpServletRequest> authorizationManager) {
+        this.authorizationManager = authorizationManager;
     }
 
     @Override
