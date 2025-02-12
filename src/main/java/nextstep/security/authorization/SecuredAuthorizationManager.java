@@ -3,27 +3,36 @@ package nextstep.security.authorization;
 import nextstep.security.authentication.Authentication;
 import nextstep.security.authentication.AuthenticationException;
 import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.aop.support.AopUtils;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Optional;
 
 public class SecuredAuthorizationManager implements AuthorizationManager<MethodInvocation> {
     private final AuthoritiesAuthorizationManager authoritiesAuthorizationManager = new AuthoritiesAuthorizationManager();
 
     @Override
     public AuthorizationDecision check(final Authentication authentication, final MethodInvocation invocation) {
-        Method method = invocation.getMethod();
+        return extractSecuredAnnotation(invocation)
+                .map(secured -> authorize(authentication, secured))
+                .orElseGet(() -> new AuthorizationDecision(false));
+    }
 
-        if (method.isAnnotationPresent(Secured.class)) {
-            Secured secured = method.getAnnotation(Secured.class);
+    private Optional<Secured> extractSecuredAnnotation(MethodInvocation invocation) {
+        Method method = AopUtils.getMostSpecificMethod(invocation.getMethod(), invocation.getThis().getClass());
+        return Optional.ofNullable(method.getAnnotation(Secured.class));
+    }
 
-            if (authentication == null) {
-                throw new AuthenticationException();
-            }
-
-            return authoritiesAuthorizationManager.check(authentication, List.of(secured.value()));
+    private AuthorizationDecision authorize(Authentication authentication, Secured secured) {
+        if (isAuthenticationInValid(authentication)) {
+            throw new AuthenticationException();
         }
 
-        return new AuthorizationDecision(true);
+        return authoritiesAuthorizationManager.check(authentication, List.of(secured.value()));
+    }
+
+    private boolean isAuthenticationInValid(Authentication authentication) {
+        return authentication == null;
     }
 }
