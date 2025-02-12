@@ -11,10 +11,11 @@ import org.springframework.aop.PointcutAdvisor;
 import org.springframework.aop.framework.AopInfrastructureBean;
 import org.springframework.aop.support.annotation.AnnotationMatchingPointcut;
 
-import java.lang.reflect.Method;
+import java.util.Objects;
 
 public class SecuredMethodInterceptor implements MethodInterceptor, PointcutAdvisor, AopInfrastructureBean {
 
+    private final SecuredAuthorizationManager authorizationManager = new SecuredAuthorizationManager();
     private final Pointcut pointcut;
 
     public SecuredMethodInterceptor() {
@@ -23,17 +24,16 @@ public class SecuredMethodInterceptor implements MethodInterceptor, PointcutAdvi
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
-        Method method = invocation.getMethod();
-        if (method.isAnnotationPresent(Secured.class)) {
-            Secured secured = method.getAnnotation(Secured.class);
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication == null) {
-                throw new AuthenticationException();
-            }
-            if (!authentication.getAuthorities().contains(secured.value())) {
-                throw new ForbiddenException();
-            }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (Objects.isNull(authentication)) {
+            throw new AuthenticationException();
         }
+        AuthorizationDecision check = authorizationManager.check(authentication, invocation);
+
+        if (!check.isGranted()) {
+            throw new ForbiddenException();
+        }
+
         return invocation.proceed();
     }
 

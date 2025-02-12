@@ -93,6 +93,7 @@ class FormLoginTest {
         );
 
         membersResponse.andExpect(status().isOk());
+
     }
 
     @DisplayName("일반 회원은 회원 목록 조회 불가능")
@@ -115,5 +116,41 @@ class FormLoginTest {
         );
 
         membersResponse.andExpect(status().isForbidden());
+    }
+
+    @DisplayName("인증된 사용자는 자신의 정보를 조회할 수 있다.")
+    @Test
+    void request_success_members_me() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+
+        ResultActions loginResponse = mockMvc.perform(post("/login")
+                .param("username", TEST_ADMIN_MEMBER.getEmail())
+                .param("password", TEST_ADMIN_MEMBER.getPassword())
+                .session(session)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        loginResponse.andExpect(status().isOk());
+
+        ResultActions membersResponse = mockMvc.perform(get("/members/me")
+                .session(session)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        membersResponse.andExpect(status().isOk());
+
+    }
+
+    @DisplayName("인증되지 않은 사용자는 자신의 정보를 조회할 수 없다.")
+    @Test
+    void request_fail_members_me() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+
+        ResultActions membersResponse = mockMvc.perform(get("/members/me")
+                .session(session)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        membersResponse.andExpect(status().isUnauthorized());
     }
 }

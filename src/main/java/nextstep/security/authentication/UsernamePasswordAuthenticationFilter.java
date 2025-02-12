@@ -49,7 +49,7 @@ public class UsernamePasswordAuthenticationFilter extends GenericFilterBean {
             SecurityContextHolder.setContext(context);
 
             securityContextRepository.saveContext(context, (HttpServletRequest) request, (HttpServletResponse) response);
-
+            chain.doFilter(request, response);
         } catch (Exception e) {
             ((HttpServletResponse) response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         }

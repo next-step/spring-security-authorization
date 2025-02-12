@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class SecuredTest {
     private final Member TEST_ADMIN_MEMBER = new Member("a@a.com", "password", "a", "", Set.of("ADMIN"));
-    private final Member TEST_USER_MEMBER = new Member("b@b.com", "password", "b", "", Set.of());
+    private final Member TEST_USER_MEMBER = new Member("b@b.com", "password", "b", "", Set.of("USER"));
 
     @Autowired
     private MockMvc mockMvc;
@@ -58,6 +58,32 @@ class SecuredTest {
         String token = Base64.getEncoder().encodeToString((TEST_USER_MEMBER.getEmail() + ":" + TEST_USER_MEMBER.getPassword()).getBytes());
 
         ResultActions response = mockMvc.perform(get("/search")
+                .header("Authorization", "Basic " + token)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        ).andDo(print());
+
+        response.andExpect(status().isForbidden());
+    }
+
+    @DisplayName("ADMIN 권한을 가진 사용자가 정의되지 않은 요청할 경우 권한이 없어야 한다.")
+    @Test
+    void not_defined_request_fail_with_admin_user() throws Exception {
+        String token = Base64.getEncoder().encodeToString((TEST_ADMIN_MEMBER.getEmail() + ":" + TEST_ADMIN_MEMBER.getPassword()).getBytes());
+
+        ResultActions response = mockMvc.perform(get("/not-defined")
+                .header("Authorization", "Basic " + token)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        ).andDo(print());
+
+        response.andExpect(status().isForbidden());
+    }
+
+    @DisplayName("일반 사용자가 정의되지 않은 요청할 경우 권한이 없어야 한다.")
+    @Test
+    void not_defined_request_fail_with_general_user() throws Exception {
+        String token = Base64.getEncoder().encodeToString((TEST_USER_MEMBER.getEmail() + ":" + TEST_USER_MEMBER.getPassword()).getBytes());
+
+        ResultActions response = mockMvc.perform(get("/not-defined")
                 .header("Authorization", "Basic " + token)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         ).andDo(print());

@@ -1,34 +1,35 @@
 package nextstep.security.authorization;
 
-import nextstep.security.authentication.Authentication;
-import nextstep.security.context.SecurityContextHolder;
-import org.springframework.web.filter.OncePerRequestFilter;
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Set;
+import nextstep.security.authentication.Authentication;
+import nextstep.security.context.SecurityContextHolder;
+import org.springframework.web.filter.OncePerRequestFilter;
 
-public class CheckAuthenticationFilter extends OncePerRequestFilter {
-    private static final String DEFAULT_REQUEST_URI = "/members";
+import java.io.IOException;
+import java.util.Objects;
+
+public class AuthorizationFilter extends OncePerRequestFilter {
+    private final RequestMatcherDelegatingAuthorizationManager requestAuthorizationManager;
+
+    public AuthorizationFilter(RequestMatcherDelegatingAuthorizationManager requestAuthorizationManager) {
+        this.requestAuthorizationManager = requestAuthorizationManager;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (!DEFAULT_REQUEST_URI.equals(request.getRequestURI())) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
+
+        if (Objects.isNull(authentication)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 
-        Set<String> authorities = authentication.getAuthorities();
-        if (!authorities.contains("ADMIN")) {
+        AuthorizationDecision check = requestAuthorizationManager.check(authentication, request);
+
+        if (!check.isGranted()) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
