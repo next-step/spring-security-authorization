@@ -50,10 +50,10 @@ public class SecurityConfig {
         return new SecuredMethodInterceptor();
     }
 
-    @Bean
-    public SecuredAspect securedAspect() {
-        return new SecuredAspect();
-    }
+//    @Bean
+//    public SecuredAspect securedAspect() {
+//        return new SecuredAspect();
+//    }
 
     @Bean
     public RequestMatcherDelegatingAuthorizationManager requestAuthorizationManager() {
