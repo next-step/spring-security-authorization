@@ -17,11 +17,7 @@ public class RequestAuthorizationManager implements AuthorizationManager<HttpSer
     public AuthorizationDecision check(Authentication authentication, HttpServletRequest request) {
         for (RequestMatcherEntry<AuthorizationManager> matcherEntry : matcherEntries) {
             if (matcherEntry.isMatches(request)) {
-                AuthorizationDecision decision = matcherEntry.check(authentication, request);
-
-                if (decision.result) {
-                    return decision;
-                }
+                return matcherEntry.check(authentication, request);
             }
         }
 
