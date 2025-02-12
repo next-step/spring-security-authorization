@@ -5,7 +5,12 @@ import nextstep.app.domain.MemberRepository;
 import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.authentication.BasicAuthenticationFilter;
 import nextstep.security.authentication.UsernamePasswordAuthenticationFilter;
+import nextstep.security.authorization.AnonymousAuthorizationStrategy;
+import nextstep.security.authorization.AuthenticatedAuthorizationManager;
+import nextstep.security.authorization.AuthorityAuthorizationManager;
 import nextstep.security.authorization.AuthorizationFilter;
+import nextstep.security.authorization.DefaultAuthorizationStrategy;
+import nextstep.security.authorization.RequestMatcherDelegatingAuthorizationManager;
 import nextstep.security.authorization.SecuredMethodInterceptor;
 import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.DelegatingFilterProxy;
@@ -14,9 +19,12 @@ import nextstep.security.config.SecurityFilterChain;
 import nextstep.security.context.SecurityContextHolderFilter;
 import nextstep.security.userdetails.UserDetails;
 import nextstep.security.userdetails.UserDetailsService;
+import nextstep.security.util.MvcRequestMatcher;
+import nextstep.security.util.RequestMatcherEntry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.http.HttpMethod;
 
 import java.util.List;
 import java.util.Set;
@@ -57,7 +65,11 @@ public class SecurityConfig {
                         new SecurityContextHolderFilter(),
                         new UsernamePasswordAuthenticationFilter(userDetailsService()),
                         new BasicAuthenticationFilter(userDetailsService()),
-                        new AuthorizationFilter()
+                        new AuthorizationFilter(new RequestMatcherDelegatingAuthorizationManager(List.of(
+                                new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members"), new AuthorityAuthorizationManager<>(Set.of("ADMIN"))),
+                                new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members/me"), new AuthenticatedAuthorizationManager<>(new DefaultAuthorizationStrategy())),
+                                new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/search"), new AuthenticatedAuthorizationManager<>(new AnonymousAuthorizationStrategy()))
+                        )))
                 )
         );
     }
