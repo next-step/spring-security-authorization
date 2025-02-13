@@ -98,8 +98,11 @@ public class SecurityConfig {
                 }
 
                 @Override
-                public Set<String> getAuthorities() {
-                    return member.getRoles();
+                public Set<GrantedAuthority> getAuthorities() {
+                    return member.getRoles()
+                            .stream()
+                            .map(SimpleGrantedAuthority::new)
+                            .collect(Collectors.toSet());
                 }
             };
         };

@@ -1,5 +1,7 @@
 package nextstep.security.userdetails;
 
+import nextstep.security.role.GrantedAuthority;
+
 import java.util.Set;
 
 public interface UserDetails {
@@ -7,5 +9,5 @@ public interface UserDetails {
 
     String getPassword();
 
-    Set<String> getAuthorities();
+    Set<GrantedAuthority> getAuthorities();
 }
