@@ -9,9 +9,10 @@ import nextstep.security.authorization.AnonymousAuthorizationStrategy;
 import nextstep.security.authorization.AuthenticatedAuthorizationManager;
 import nextstep.security.authorization.AuthorityAuthorizationManager;
 import nextstep.security.authorization.AuthorizationFilter;
+import nextstep.security.authorization.AuthorizationManagerBeforeMethodInterceptor;
 import nextstep.security.authorization.DefaultAuthorizationStrategy;
 import nextstep.security.authorization.RequestMatcherDelegatingAuthorizationManager;
-import nextstep.security.authorization.SecuredMethodInterceptor;
+import nextstep.security.authorization.SecuredAuthorizationManager;
 import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.DelegatingFilterProxy;
 import nextstep.security.config.FilterChainProxy;
@@ -50,15 +51,6 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecuredMethodInterceptor securedMethodInterceptor() {
-        return new SecuredMethodInterceptor();
-    }
-//    @Bean
-//    public SecuredAspect securedAspect() {
-//        return new SecuredAspect();
-//    }
-
-    @Bean
     public SecurityFilterChain securityFilterChain() {
         return new DefaultSecurityFilterChain(
                 List.of(
@@ -72,6 +64,15 @@ public class SecurityConfig {
                         )))
                 )
         );
+    }
+
+    @Bean
+    public AuthorizationManagerBeforeMethodInterceptor authorizationManagerBeforeMethodInterceptor() {
+        return new AuthorizationManagerBeforeMethodInterceptor(securedAuthorizationManager());
+    }
+
+    private SecuredAuthorizationManager securedAuthorizationManager() {
+        return new SecuredAuthorizationManager(new AuthorityAuthorizationManager<>(Set.of("ADMIN")));
     }
 
     @Bean
