@@ -29,7 +29,7 @@ public class MemberController {
         return ResponseEntity.ok(members);
     }
 
-    @Secured({"ADMIN", "MEMBER"})
+    @Secured
     @GetMapping("/search")
     public ResponseEntity<List<Member>> search() {
         List<Member> members = memberRepository.findAll();
