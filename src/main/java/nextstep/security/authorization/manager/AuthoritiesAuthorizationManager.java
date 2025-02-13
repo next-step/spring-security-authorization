@@ -13,7 +13,7 @@ public class AuthoritiesAuthorizationManager implements AuthorizationManager<Col
     private final RoleHierarchy roleHierarchy;
 
     public AuthoritiesAuthorizationManager() {
-        this.roleHierarchy = new NullRoleHierarchy();
+        this(new NullRoleHierarchy());
     }
 
     public AuthoritiesAuthorizationManager(RoleHierarchy roleHierarchy) {

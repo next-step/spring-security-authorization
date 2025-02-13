@@ -3,11 +3,11 @@ package nextstep.security.authorization.role;
 import nextstep.security.SimpleGrantedAuthority;
 import nextstep.security.authorization.GrantedAuthority;
 
+import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -18,6 +18,8 @@ public class RoleHierarchyImpl implements RoleHierarchy {
 
     private RoleHierarchyImpl(Map<String, Set<GrantedAuthority>> reachableAuthoritiesMap) {
         this.reachableAuthoritiesMap = reachableAuthoritiesMap;
+        RoleHierarchyCycleChecker cycleChecker = new RoleHierarchyCycleChecker(reachableAuthoritiesMap);
+        cycleChecker.checkCycle();
     }
 
     public static RoleHierarchyImpl fromHierarchy(String hierarchy) {
@@ -51,7 +53,7 @@ public class RoleHierarchyImpl implements RoleHierarchy {
 
         Set<GrantedAuthority> result = new HashSet<>();
         Set<GrantedAuthority> processed = new HashSet<>();
-        Queue<GrantedAuthority> queue = new LinkedList<>(authorities);
+        Queue<GrantedAuthority> queue = new ArrayDeque<>(authorities);
 
         while (!queue.isEmpty()) {
             GrantedAuthority current = queue.poll();
@@ -63,15 +65,18 @@ public class RoleHierarchyImpl implements RoleHierarchy {
             processed.add(current);
             result.add(current);
 
-            reachableAuthoritiesMap.getOrDefault(current.getAuthority(), Collections.emptySet())
-                    .stream().filter(a -> !processed.contains(a))
-                    .forEach(queue::offer);
+            Set<GrantedAuthority> next = reachableAuthoritiesMap.getOrDefault(current.getAuthority(), Collections.emptySet());
+            for (GrantedAuthority authority : next) {
+                if (!processed.contains(authority)) {
+                    queue.offer(authority);
+                }
+            }
         }
 
         return result;
     }
 
-    public static class Builder {
+    public static final class Builder {
         private final Map<String, Set<GrantedAuthority>> hierarchy = new HashMap<>();
 
         public ImpliedRoles role(String parent) {
@@ -101,6 +106,43 @@ public class RoleHierarchyImpl implements RoleHierarchy {
             public Builder implies(String... children) {
                 return Builder.this.addHierarchy(parent, children);
             }
+        }
+    }
+
+    private static final class RoleHierarchyCycleChecker {
+        private final Map<String, Set<GrantedAuthority>> reachableAuthoritiesMap;
+        private final Set<String> visited;
+        private final Set<String> visiting;
+
+        private RoleHierarchyCycleChecker(Map<String, Set<GrantedAuthority>> reachableAuthoritiesMap) {
+            this.reachableAuthoritiesMap = reachableAuthoritiesMap;
+            this.visited = new HashSet<>();
+            this.visiting = new HashSet<>();
+        }
+
+        private void checkCycle() {
+            for (String role : reachableAuthoritiesMap.keySet()) {
+                if (!visited.contains(role)) {
+                    visit(role);
+                }
+            }
+        }
+
+        private void visit(String role) {
+            if (visiting.contains(role)) {
+                throw new CycleInRoleHierarchyException();
+            }
+
+            visiting.add(role);
+            Set<GrantedAuthority> children = reachableAuthoritiesMap.get(role);
+            if (children != null) {
+                for (GrantedAuthority child : children) {
+                    visit(child.getAuthority());
+                }
+            }
+
+            visiting.remove(role);
+            visited.add(role);
         }
     }
 }

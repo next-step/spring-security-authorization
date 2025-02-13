@@ -8,6 +8,9 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 public class RoleHierarchyTest {
 
     @Test
@@ -23,7 +26,7 @@ public class RoleHierarchyTest {
                 roleHierarchy.getReachableGrantedAuthorities(Set.of(new SimpleGrantedAuthority("ROLE_ADMIN")))
                         .stream().map(GrantedAuthority::getAuthority).toList();
 
-        Assertions.assertThat(reachableAuthorities).containsExactlyInAnyOrder(
+        assertThat(reachableAuthorities).containsExactlyInAnyOrder(
                 "ROLE_ADMIN",
                 "ROLE_USER",
                 "ROLE_GUEST"
@@ -45,7 +48,7 @@ public class RoleHierarchyTest {
                 roleHierarchy.getReachableGrantedAuthorities(Set.of(new SimpleGrantedAuthority("ROLE_ADMIN")))
                         .stream().map(GrantedAuthority::getAuthority).toList();
 
-        Assertions.assertThat(reachableAuthorities).containsExactlyInAnyOrder(
+        assertThat(reachableAuthorities).containsExactlyInAnyOrder(
                 "ROLE_ADMIN",
                 "ROLE_USER",
                 "ROLE_GUEST",
@@ -65,10 +68,20 @@ public class RoleHierarchyTest {
                 roleHierarchy.getReachableGrantedAuthorities(Set.of(new SimpleGrantedAuthority("ROLE_ADMIN")))
                         .stream().map(GrantedAuthority::getAuthority).toList();
 
-        Assertions.assertThat(reachableAuthorities).containsExactlyInAnyOrder(
+        assertThat(reachableAuthorities).containsExactlyInAnyOrder(
                 "ROLE_ADMIN",
                 "ROLE_USER",
                 "ROLE_GUEST"
         );
+    }
+
+    @Test
+    void hierarchyCycleDetect() {
+        assertThatThrownBy(() -> RoleHierarchyImpl.with()
+                .role("ROLE_ADMIN").implies("ROLE_USER")
+                .role("ROLE_USER").implies("ROLE_GUEST")
+                .role("ROLE_GUEST").implies("ROLE_ADMIN") // Cycle
+                .build())
+                .isInstanceOf(CycleInRoleHierarchyException.class);
     }
 }

@@ -12,11 +12,6 @@ public class HasAuthorityAuthorizationManager<T> implements AuthorizationManager
     private final AuthorizationManager<Collection<String>> authorizationManager;
     private final Set<String> authorities;
 
-    public HasAuthorityAuthorizationManager(String... authorities) {
-        this.authorizationManager = new AuthoritiesAuthorizationManager();
-        this.authorities = Set.of(authorities);
-    }
-
     public HasAuthorityAuthorizationManager(RoleHierarchy roleHierarchy, String... authorities) {
         this.authorizationManager = new AuthoritiesAuthorizationManager(roleHierarchy);
         this.authorities = Set.of(authorities);
