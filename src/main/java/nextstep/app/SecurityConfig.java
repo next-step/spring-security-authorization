@@ -27,6 +27,7 @@ import nextstep.security.config.SecurityFilterChain;
 import nextstep.security.context.SecurityContextHolderFilter;
 import nextstep.security.userdetails.UserDetails;
 import nextstep.security.userdetails.UserDetailsService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
@@ -36,8 +37,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-@EnableAspectJAutoProxy
 @Configuration
+@EnableAspectJAutoProxy
 public class SecurityConfig {
 
     private final MemberRepository memberRepository;
@@ -47,8 +48,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public DelegatingFilterProxy delegatingFilterProxy() {
-        return new DelegatingFilterProxy(filterChainProxy(List.of(securityFilterChain())));
+    public DelegatingFilterProxy delegatingFilterProxy(RequestMatcherDelegatingAuthorizationManager requestAuthorizationManager) {
+        return new DelegatingFilterProxy(filterChainProxy(List.of(securityFilterChain(requestAuthorizationManager))));
     }
 
     @Bean
@@ -57,13 +58,13 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain() {
+    public SecurityFilterChain securityFilterChain(RequestMatcherDelegatingAuthorizationManager requestAuthorizationManager) {
         return new DefaultSecurityFilterChain(
                 List.of(
                         new SecurityContextHolderFilter(),
                         new UsernamePasswordAuthenticationFilter(userDetailsService()),
                         new BasicAuthenticationFilter(userDetailsService()),
-                        new AuthorizationFilter(requestAuthorizationManager())
+                        new AuthorizationFilter(requestAuthorizationManager)
                 )
         );
     }
@@ -94,13 +95,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecuredMethodInterceptor securedMethodInterceptor() {
-        return new SecuredMethodInterceptor(
-                new SecuredAuthorizationManager(roleHierarchy())
-        );
-    }
-
-    @Bean
+    @ConditionalOnMissingBean(RequestMatcherDelegatingAuthorizationManager.class)
     public RequestMatcherDelegatingAuthorizationManager requestAuthorizationManager() {
         List<RequestMatcherEntry<AuthorizationManager<HttpServletRequest>>> mappings = new ArrayList<>();
 
@@ -117,18 +112,6 @@ public class SecurityConfig {
                 new PermitAllAuthorizationManager<>())
         );
 
-        // -- for test
-        mappings.add(new RequestMatcherEntry<>(
-                new MvcRequestMatcher(HttpMethod.GET, "/user-granted"),
-                new HasAuthorityAuthorizationManager<>(roleHierarchy(), "USER"))
-        );
-
-        mappings.add(new RequestMatcherEntry<>(
-                new MvcRequestMatcher(HttpMethod.GET, "/admin-granted"),
-                new HasAuthorityAuthorizationManager<>(roleHierarchy(), "ADMIN"))
-        );
-        //
-
         mappings.add(new RequestMatcherEntry<>(
                 new AnyRequestMatcher(),
                 new DenyAllAuthorizationManager<>())
@@ -138,9 +121,18 @@ public class SecurityConfig {
     }
 
     @Bean
+    @ConditionalOnMissingBean(RoleHierarchy.class)
     public RoleHierarchy roleHierarchy() {
         return RoleHierarchyImpl.with()
                 .role("ADMIN").implies("USER")
                 .build();
     }
+
+    @Bean
+    public SecuredMethodInterceptor securedMethodInterceptor(RoleHierarchy roleHierarchy) {
+        return new SecuredMethodInterceptor(
+                new SecuredAuthorizationManager(roleHierarchy)
+        );
+    }
+
 }

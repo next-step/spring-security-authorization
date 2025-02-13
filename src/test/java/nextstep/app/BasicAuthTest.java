@@ -2,7 +2,6 @@ package nextstep.app;
 
 import nextstep.app.domain.Member;
 import nextstep.app.domain.MemberRepository;
-import nextstep.security.authorization.Secured;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,8 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Base64;
 import java.util.Set;
@@ -24,7 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
-@Import(BasicAuthTest.TestController.class)
+@Import(TestSecurityConfig.class)
 @AutoConfigureMockMvc
 class BasicAuthTest {
     private final Member TEST_ADMIN_MEMBER = new Member("a@a.com", "password", "a", "", Set.of("ADMIN"));
@@ -159,25 +156,5 @@ class BasicAuthTest {
 
         response.andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().string("userGranted"));
-    }
-
-    @RestController
-    static class TestController {
-        @GetMapping("/invalid")
-        public String forbidden() {
-            return "forbidden";
-        }
-
-        @Secured("USER")
-        @GetMapping("/user-granted")
-        public String userGranted() {
-            return "userGranted";
-        }
-
-        @Secured("ADMIN")
-        @GetMapping("/admin-granted")
-        public String adminGranted() {
-            return "adminGranted";
-        }
     }
 }
