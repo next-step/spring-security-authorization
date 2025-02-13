@@ -2,12 +2,19 @@ package nextstep.security.authorization.manager;
 
 import nextstep.security.authentication.Authentication;
 import nextstep.security.authorization.AuthorizationDecision;
-import nextstep.security.authorization.ForbiddenException;
+import nextstep.security.role.GrantedAuthority;
+import nextstep.security.role.RoleHierarchy;
 
 import java.util.Collection;
 import java.util.Set;
 
 public class AuthorityAuthorizationManager<T> implements AuthorizationManager<T> {
+
+    private final RoleHierarchy roleHierarchy;
+
+    public AuthorityAuthorizationManager(RoleHierarchy roleHierarchy) {
+        this.roleHierarchy = roleHierarchy;
+    }
 
     @Override
     public AuthorizationDecision check(Authentication authentication, T authorities) {
@@ -15,51 +22,27 @@ public class AuthorityAuthorizationManager<T> implements AuthorizationManager<T>
             return AuthorizationDecision.denied();
         }
 
-        boolean hasNotRole = false;
-
-        if (authorities instanceof Collection<?> collection) {
-            hasNotRole = roleCheckByCollection(authentication, collection);
-        } else if (authorities instanceof String authority) {
-            hasNotRole = roleCheckByString(authentication, authority);
+        Set<GrantedAuthority> userAuthorities = authentication.getAuthorities();
+        if (userAuthorities == null || userAuthorities.isEmpty()) {
+            return AuthorizationDecision.denied();
         }
 
-        if (hasNotRole) {
-            throw new ForbiddenException();
+        Collection<GrantedAuthority> reachableRoles = roleHierarchy.getReachableRoles(userAuthorities);
+
+        if (authorities instanceof Set<?> requires
+                && requires.iterator().next() instanceof GrantedAuthority
+        ) {
+            @SuppressWarnings("unchecked")
+            Set<GrantedAuthority> requiredAuthorities = (Set<GrantedAuthority>) requires;
+            for (GrantedAuthority requiredAuthority : requiredAuthorities) {
+                if (reachableRoles.contains(requiredAuthority)) {
+                    return AuthorizationDecision.granted();
+                }
+            }
+
+            return AuthorizationDecision.denied();
         }
 
         return AuthorizationDecision.granted();
-    }
-
-    private boolean roleCheckByCollection(Authentication authentication, Collection<?> requiredAuthorities) {
-        if (requiredAuthorities == null || requiredAuthorities.isEmpty()) {
-            return false;
-        }
-
-        Set<String> userAuthorities = authentication.getAuthorities();
-        if (userAuthorities == null || userAuthorities.isEmpty()) {
-            return true;
-        }
-
-        if (requiredAuthorities.iterator().next() instanceof String) {
-
-            @SuppressWarnings("unchecked")
-            Collection<String> requires = (Collection<String>) requiredAuthorities;
-            for (String requiredAuthority : requires) {
-                if (userAuthorities.contains(requiredAuthority)) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    private boolean roleCheckByString(Authentication authentication, String requiredAuthority) {
-        Set<String> userAuthorities = authentication.getAuthorities();
-        if (userAuthorities == null || userAuthorities.isEmpty()) {
-            return true;
-        }
-
-        return !userAuthorities.contains(requiredAuthority);
     }
 }
