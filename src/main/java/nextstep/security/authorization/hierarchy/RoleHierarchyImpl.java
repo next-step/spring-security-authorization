@@ -2,11 +2,11 @@ package nextstep.security.authorization.hierarchy;
 
 import org.springframework.util.Assert;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -30,7 +30,7 @@ public class RoleHierarchyImpl implements RoleHierarchy {
 
         Set<String> reachableRoles = new HashSet<>();
         Set<String> processedRoles = new HashSet<>();
-        Queue<String> queue = new LinkedList<>(authorities);
+        Queue<String> queue = new ArrayDeque<>(authorities);
 
         while (!queue.isEmpty()) {
             String role = queue.poll();
@@ -62,14 +62,47 @@ public class RoleHierarchyImpl implements RoleHierarchy {
         }
 
         public RoleHierarchyImpl build() {
+            detectCycle();
             return new RoleHierarchyImpl(this.hierarchy);
         }
 
-        private Builder addHierarchy(String role, String... impliedRoles) {
-            Set<String> childRoles = new HashSet<>();
-            for (String impliedRole : impliedRoles) {
-                childRoles.add(impliedRole);
+        private void detectCycle() {
+            Set<String> visited = new HashSet<>();
+            Set<String> stack = new HashSet<>();
+
+            for (String role : hierarchy.keySet()) {
+                if (hasCycle(role, visited, stack)) {
+                    throw new CycleInRoleHierarchyException();
+                }
             }
+        }
+
+        private boolean hasCycle(String role, Set<String> visited, Set<String> stack) {
+            if (stack.contains(role)) {
+                return true;
+            }
+            if (visited.contains(role)) {
+                return false;
+            }
+
+            visited.add(role);
+            stack.add(role);
+
+            Set<String> children = hierarchy.get(role);
+            if (children != null) {
+                for (String child : children) {
+                    if (hasCycle(child, visited, stack)) {
+                        return true;
+                    }
+                }
+            }
+
+            stack.remove(role);
+            return false;
+        }
+
+        private Builder addHierarchy(String role, String... impliedRoles) {
+            Set<String> childRoles = Set.of(impliedRoles);
 
             this.hierarchy.put(role, childRoles);
             return this;
