@@ -81,7 +81,7 @@ public class SecurityConfig {
     public RequestAuthorizationManager requestAuthorizationManager() {
         List<RequestMatcherEntry<AuthorizationManager>> mappings = new ArrayList<>();
         mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members/me"), new AuthenticatedAuthorizationManager()));
-        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members"), new AuthorityAuthorizationManager("ADMIN", roleHierarchy())));
+        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members"), new AuthorityAuthorizationManager(roleHierarchy(), "ADMIN")));
         mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/search"), new PermitAllAuthorizationManager()));
         mappings.add(new RequestMatcherEntry<>(AnyRequestMatcher.INSTANCE, new DenyAllAuthorizationManager()));
         return new RequestAuthorizationManager(mappings);
