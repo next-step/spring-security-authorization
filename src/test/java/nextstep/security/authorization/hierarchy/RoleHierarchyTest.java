@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class RoleHierarchyTest {
 
@@ -20,6 +21,23 @@ class RoleHierarchyTest {
                 .role("ADMIN").implies("USER")
                 .role("USER").implies("GUEST")
                 .build();
+    }
+
+    @Nested
+    @DisplayName("build()")
+    class build {
+        @Test
+        @DisplayName("계층 설정 시 순환참조가 존재하면 예외를 발생한다.")
+        void shouldReturnSameRole_WhenNoHierarchy() {
+            assertThatThrownBy(() ->
+                    RoleHierarchyImpl.with()
+                            .role("ADMIN").implies("USER")
+                            .role("USER").implies("GUEST")
+                            .role("GUEST").implies("ADMIN")
+                            .build()
+            ).isInstanceOf(CycleInRoleHierarchyException.class);
+        }
+
     }
 
     @Nested
