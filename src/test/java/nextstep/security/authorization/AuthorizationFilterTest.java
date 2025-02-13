@@ -6,6 +6,7 @@ import nextstep.security.authorization.manager.*;
 import nextstep.security.matcher.AnyRequestMatcher;
 import nextstep.security.matcher.MvcRequestMatcher;
 import nextstep.security.matcher.RequestMatcherEntry;
+import nextstep.support.mock.MockRoleHierarchy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -25,9 +26,11 @@ class AuthorizationFilterTest {
     private final AuthorizationFilter authorizationFilter;
 
     AuthorizationFilterTest() {
+        MockRoleHierarchy mockRoleHierarchy = new MockRoleHierarchy();
+
         List<RequestMatcherEntry<AuthorizationManager<HttpServletRequest>>> mappings = new ArrayList<>();
         mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members/me"), new AuthenticatedAuthorizationManager()));
-        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members"), new AuthorityAuthorizationManager<>()));
+        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members"), new AuthorityAuthorizationManager<>(mockRoleHierarchy)));
         mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/search", "/login"), new PermitAllAuthorizationManager()));
         mappings.add(new RequestMatcherEntry<>(new AnyRequestMatcher(), new DenyAllAuthorizationManager()));
         RequestMatcherDelegatingAuthorizationManager authorizationManager = new RequestMatcherDelegatingAuthorizationManager(mappings);
