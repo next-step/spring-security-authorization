@@ -26,7 +26,6 @@ public class SecuredMethodInterceptor implements MethodInterceptor, PointcutAdvi
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
         Method method = invocation.getMethod();
-
         if (!method.isAnnotationPresent(Secured.class)) {
             return invocation.proceed();
         }
