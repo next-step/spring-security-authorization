@@ -5,12 +5,12 @@ import nextstep.app.domain.MemberRepository;
 import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.authentication.BasicAuthenticationFilter;
 import nextstep.security.authentication.UsernamePasswordAuthenticationFilter;
-import nextstep.security.authorization.AnonymousAuthorizationStrategy;
 import nextstep.security.authorization.AuthenticatedAuthorizationManager;
 import nextstep.security.authorization.AuthorityAuthorizationManager;
 import nextstep.security.authorization.AuthorizationFilter;
 import nextstep.security.authorization.AuthorizationManagerBeforeMethodInterceptor;
 import nextstep.security.authorization.AuthenticatedAuthorizationStrategy;
+import nextstep.security.authorization.PermitAllAuthorizationManager;
 import nextstep.security.authorization.RequestMatcherDelegatingAuthorizationManager;
 import nextstep.security.authorization.SecuredAuthorizationManager;
 import nextstep.security.config.DefaultSecurityFilterChain;
@@ -20,6 +20,7 @@ import nextstep.security.config.SecurityFilterChain;
 import nextstep.security.context.SecurityContextHolderFilter;
 import nextstep.security.userdetails.UserDetails;
 import nextstep.security.userdetails.UserDetailsService;
+import nextstep.security.util.AnyRequestMatcher;
 import nextstep.security.util.MvcRequestMatcher;
 import nextstep.security.util.RequestMatcherEntry;
 import org.springframework.context.annotation.Bean;
@@ -58,9 +59,10 @@ public class SecurityConfig {
                         new UsernamePasswordAuthenticationFilter(userDetailsService()),
                         new BasicAuthenticationFilter(userDetailsService()),
                         new AuthorizationFilter(new RequestMatcherDelegatingAuthorizationManager(List.of(
-                                new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members"), new AuthorityAuthorizationManager<>(Set.of("ADMIN"))),
                                 new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members/me"), new AuthenticatedAuthorizationManager<>(new AuthenticatedAuthorizationStrategy())),
-                                new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/search"), new AuthenticatedAuthorizationManager<>(new AnonymousAuthorizationStrategy()))
+                                new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members"), new AuthorityAuthorizationManager<>(Set.of("ADMIN"))),
+                                new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/search"), new PermitAllAuthorizationManager<>()),
+                                new RequestMatcherEntry<>(new AnyRequestMatcher(), new PermitAllAuthorizationManager())
                         )))
                 )
         );
