@@ -2,7 +2,7 @@ package nextstep.security.authorization;
 
 import nextstep.security.authentication.Authentication;
 
-public class DefaultAuthorizationStrategy implements AuthorizationStrategy {
+public class AuthenticatedAuthorizationStrategy implements AuthorizationStrategy {
 
     @Override
     public boolean isGranted(Authentication authentication) {

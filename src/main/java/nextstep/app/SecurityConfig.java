@@ -10,7 +10,7 @@ import nextstep.security.authorization.AuthenticatedAuthorizationManager;
 import nextstep.security.authorization.AuthorityAuthorizationManager;
 import nextstep.security.authorization.AuthorizationFilter;
 import nextstep.security.authorization.AuthorizationManagerBeforeMethodInterceptor;
-import nextstep.security.authorization.DefaultAuthorizationStrategy;
+import nextstep.security.authorization.AuthenticatedAuthorizationStrategy;
 import nextstep.security.authorization.RequestMatcherDelegatingAuthorizationManager;
 import nextstep.security.authorization.SecuredAuthorizationManager;
 import nextstep.security.config.DefaultSecurityFilterChain;
@@ -59,7 +59,7 @@ public class SecurityConfig {
                         new BasicAuthenticationFilter(userDetailsService()),
                         new AuthorizationFilter(new RequestMatcherDelegatingAuthorizationManager(List.of(
                                 new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members"), new AuthorityAuthorizationManager<>(Set.of("ADMIN"))),
-                                new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members/me"), new AuthenticatedAuthorizationManager<>(new DefaultAuthorizationStrategy())),
+                                new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members/me"), new AuthenticatedAuthorizationManager<>(new AuthenticatedAuthorizationStrategy())),
                                 new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/search"), new AuthenticatedAuthorizationManager<>(new AnonymousAuthorizationStrategy()))
                         )))
                 )
