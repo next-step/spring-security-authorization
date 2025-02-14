@@ -2,8 +2,12 @@ package nextstep.app;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.stream.Collectors;
 import nextstep.app.domain.Member;
 import nextstep.app.domain.MemberRepository;
+import nextstep.security.access.RoleHierarchy;
+import nextstep.security.access.RoleHierarchyImpl;
 import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.authentication.BasicAuthenticationFilter;
 import nextstep.security.authentication.UsernamePasswordAuthenticationFilter;
@@ -20,6 +24,8 @@ import nextstep.security.config.DelegatingFilterProxy;
 import nextstep.security.config.FilterChainProxy;
 import nextstep.security.config.SecurityFilterChain;
 import nextstep.security.context.SecurityContextHolderFilter;
+import nextstep.security.core.GrantedAuthority;
+import nextstep.security.core.SimpleGrantedAuthority;
 import nextstep.security.userdetails.UserDetails;
 import nextstep.security.userdetails.UserDetailsService;
 import nextstep.security.util.AnyRequestMatcher;
@@ -57,19 +63,22 @@ public class SecurityConfig {
 
     @Bean
     public SecuredMethodInterceptor securedMethodInterceptor() {
-        return new SecuredMethodInterceptor(securedAuthorizationManager());
+        return new SecuredMethodInterceptor(roleHierarchy());
     }
 
     @Bean
-    public AuthorizationManager<MethodInvocation> securedAuthorizationManager() {
-         return new SecuredAuthorizationManager();
+    public RoleHierarchy roleHierarchy() {
+        return RoleHierarchyImpl.with()
+                .role("ADMIN").implies("USER")
+                .role("USER").implies("GUEST")
+                .build();
     }
 
     @Bean
     public AuthorizationManager<HttpServletRequest> requestAuthorizationManager() {
         List<RequestMatcherEntry<AuthorizationManager>> mappings = new ArrayList<>();
         mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members"),
-                new AuthorityAuthorizationManager<HttpServletRequest>(Set.of("ADMIN"))));
+                new AuthorityAuthorizationManager(roleHierarchy(), Set.of("ADMIN"))));
         mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members/me"),
                 new AuthenticatedAuthorizationManager()));
         mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/search"),
@@ -108,8 +117,8 @@ public class SecurityConfig {
                 }
 
                 @Override
-                public Set<String> getAuthorities() {
-                    return member.getRoles();
+                public Set<GrantedAuthority> getAuthorities() {
+                    return member.getRoles().stream().map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
                 }
             };
         };
