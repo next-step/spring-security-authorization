@@ -6,9 +6,10 @@ import java.util.*;
 
 public class RoleHierarchyImpl implements RoleHierarchy {
 
-    Map<String, Set<GrantedAuthority>> roleHierarchy;
-
     private static final List<GrantedAuthority> EMPTY_AUTHORITIES = Collections.emptyList();
+
+    private final Map<String, Set<GrantedAuthority>> roleHierarchy;
+
 
     public RoleHierarchyImpl(Map<String, Set<GrantedAuthority>> roleHierarchy) {
         this.roleHierarchy = new HashMap<>(roleHierarchy);
