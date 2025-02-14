@@ -125,14 +125,7 @@ class FormLoginTest {
     @Test
     @DisplayName("인증된 사용자는 자신의 정보를 조회할 수 있다.")
     void request_success_members_me() throws Exception {
-        MockHttpSession session = new MockHttpSession();
-
-        mockMvc.perform(post("/login")
-                .param("username", TEST_USER_MEMBER.getEmail())
-                .param("password", TEST_USER_MEMBER.getPassword())
-                .session(session)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-        ).andExpect(status().isOk());
+        MockHttpSession session = login(TEST_USER_MEMBER);
 
         mockMvc.perform(get("/members/me")
                         .session(session)
@@ -157,14 +150,7 @@ class FormLoginTest {
     @Test
     @DisplayName("ADMIN 권한을 가진 사용자가 요청할 경우 모든 회원 정보를 조회할 수 있다.")
     void request_search_success_with_admin_user() throws Exception {
-        MockHttpSession session = new MockHttpSession();
-
-        mockMvc.perform(post("/login")
-                .param("username", TEST_ADMIN_MEMBER.getEmail())
-                .param("password", TEST_ADMIN_MEMBER.getPassword())
-                .session(session)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-        ).andExpect(status().isOk());
+        MockHttpSession session = login(TEST_ADMIN_MEMBER);
 
         mockMvc.perform(get("/members")
                         .session(session)
@@ -177,14 +163,7 @@ class FormLoginTest {
     @Test
     @DisplayName("제한된 URI은 ADMIN 이여도 접근할수 없다")
     void request_private_with_admin_user() throws Exception {
-        MockHttpSession session = new MockHttpSession();
-
-        mockMvc.perform(post("/login")
-                .param("username", TEST_ADMIN_MEMBER.getEmail())
-                .param("password", TEST_ADMIN_MEMBER.getPassword())
-                .session(session)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-        ).andExpect(status().isOk());
+        MockHttpSession session = login(TEST_ADMIN_MEMBER);
 
         mockMvc.perform(post("/private")
                         .session(session)
@@ -196,19 +175,45 @@ class FormLoginTest {
     @Test
     @DisplayName("제한된 URI은 접근할수 없다")
     void request_private_with_user_user() throws Exception {
-        MockHttpSession session = new MockHttpSession();
-
-        mockMvc.perform(post("/login")
-                .param("username", TEST_USER_MEMBER.getEmail())
-                .param("password", TEST_USER_MEMBER.getPassword())
-                .session(session)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-        ).andExpect(status().isOk());
+        MockHttpSession session = login(TEST_USER_MEMBER);
 
         mockMvc.perform(post("/private")
                         .session(session)
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                 )
                 .andExpect(status().isForbidden());
+    }
+
+
+    @Test
+    @DisplayName("USER 권한 이상을 가진 사용자는 hierarchy url에 접근이 가능하다.")
+    void request_success_hierarchy() throws Exception {
+        MockHttpSession adminSession = login(TEST_ADMIN_MEMBER);
+        MockHttpSession userSession = login(TEST_USER_MEMBER);
+
+        mockMvc.perform(get("/hierarchy")
+                        .session(adminSession)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                )
+                .andExpect(status().isOk());
+
+
+        mockMvc.perform(get("/hierarchy")
+                        .session(userSession)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                )
+                .andExpect(status().isOk());
+    }
+
+    private MockHttpSession login(Member member) throws Exception {
+        MockHttpSession session = new MockHttpSession();
+
+        mockMvc.perform(post("/login")
+                .param("username", member.getEmail())
+                .param("password", member.getPassword())
+                .session(session)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        ).andExpect(status().isOk());
+        return session;
     }
 }

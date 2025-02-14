@@ -53,4 +53,50 @@ class HasAuthorityAuthorizationManagerTest {
 
         assertThat(check.isDeny()).isFalse();
     }
+
+    @DisplayName("roleHierarchy 를 설정하면 상위 권한에서 인가를 허용한다")
+    @Test
+    void roleHierarchy_authenticate() {
+        // given
+        final String allowedRole = "ADMIN";
+        RoleHierarchyImpl roleHierarchy = RoleHierarchyImpl.with()
+                .role("ADMIN")
+                .implies("USER")
+                .build();
+
+        HasAuthorityAuthorizationManager authenticatedAuthorizationManager = new HasAuthorityAuthorizationManager(allowedRole);
+        authenticatedAuthorizationManager.withRoleHierarchy(roleHierarchy);
+
+        Authentication authentication = TestAuthentication.admin();
+
+
+        // when
+        AuthorizationDecision check = authenticatedAuthorizationManager.check(authentication, new MockHttpServletRequest());
+
+        // then
+        assertThat(check.isDeny()).isFalse();
+    }
+
+    @DisplayName("roleHierarchy 를 설정하면 같은 권한에 인가를 허용한다")
+    @Test
+    void roleHierarchy_equal_authenticate() {
+        // given
+        final String allowedRole = "USER";
+        RoleHierarchyImpl roleHierarchy = RoleHierarchyImpl.with()
+                .role("ADMIN")
+                .implies("USER")
+                .build();
+
+        HasAuthorityAuthorizationManager authenticatedAuthorizationManager = new HasAuthorityAuthorizationManager(allowedRole);
+        authenticatedAuthorizationManager.withRoleHierarchy(roleHierarchy);
+
+        Authentication authentication = TestAuthentication.user();
+
+
+        // when
+        AuthorizationDecision check = authenticatedAuthorizationManager.check(authentication, new MockHttpServletRequest());
+
+        // then
+        assertThat(check.isDeny()).isFalse();
+    }
 }

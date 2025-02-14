@@ -55,6 +55,15 @@ public class SecurityConfig {
 //        return new SecuredAspect();
 //    }
 
+
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+       return RoleHierarchyImpl.with()
+               .role("ADMIN")
+               .implies("USER","GUEST")
+               .build();
+    }
+
     @Bean
     public RequestMatcherDelegatingAuthorizationManager requestAuthorizationManager() {
         List<RequestMatcherEntry<AuthorizationManager>> mappings = new ArrayList<>();
@@ -62,6 +71,7 @@ public class SecurityConfig {
         mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members"), new HasAuthorityAuthorizationManager("ADMIN")));
         mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/search"), new PermitAllAuthorizationManager()));
         mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.POST, "/private"), new DenyAllAuthorizationManager()));
+        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/hierarchy"), new HasAuthorityAuthorizationManager("USER").withRoleHierarchy(roleHierarchy())));
         mappings.add(new RequestMatcherEntry<>(new AnyRequestMatcher(), new PermitAllAuthorizationManager()));
         return new RequestMatcherDelegatingAuthorizationManager(mappings);
     }

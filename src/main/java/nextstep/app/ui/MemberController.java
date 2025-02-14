@@ -32,6 +32,13 @@ public class MemberController {
         return ResponseEntity.ok(members);
     }
 
+
+    @GetMapping("/hierarchy")
+    public ResponseEntity<Void> hierarchy() {
+        return ResponseEntity.ok().build();
+    }
+
+
     @GetMapping("/members/me")
     public Member findMe() {
         final String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
