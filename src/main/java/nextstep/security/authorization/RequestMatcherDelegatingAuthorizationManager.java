@@ -1,0 +1,33 @@
+package nextstep.security.authorization;
+
+import jakarta.servlet.http.HttpServletRequest;
+import nextstep.security.authentication.Authentication;
+import nextstep.security.util.RequestMatcher;
+import nextstep.security.util.RequestMatcherEntry;
+
+import java.util.List;
+
+public class RequestMatcherDelegatingAuthorizationManager implements AuthorizationManager<HttpServletRequest> {
+
+    private final List<RequestMatcherEntry<AuthorizationManager>> mappings;
+
+    public RequestMatcherDelegatingAuthorizationManager(List<RequestMatcherEntry<AuthorizationManager>> mappings) {
+        this.mappings = mappings;
+    }
+
+    @Override
+    public AuthorizationDecision check(Authentication authentication, HttpServletRequest request) {
+
+        for (RequestMatcherEntry<AuthorizationManager> mapping : this.mappings) {
+            RequestMatcher matcher = mapping.getRequestMatcher();
+            RequestMatcher.MatchResult matchResult = matcher.matcher(request);
+            if (matchResult.isMatch()) {
+                AuthorizationManager manager = mapping.getEntry();
+
+                return manager.check(authentication, request);
+            }
+        }
+
+        return new AuthorizationDecision(false);
+    }
+}
