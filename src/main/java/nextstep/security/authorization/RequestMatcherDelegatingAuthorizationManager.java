@@ -9,22 +9,22 @@ import java.util.List;
 
 public class RequestMatcherDelegatingAuthorizationManager implements AuthorizationManager<HttpServletRequest> {
 
-    private final List<RequestMatcherEntry<AuthorizationManager<RequestAuthorizationContext>>> mappings;
+    private final List<RequestMatcherEntry<AuthorizationManager>> mappings;
 
-    public RequestMatcherDelegatingAuthorizationManager(List<RequestMatcherEntry<AuthorizationManager<RequestAuthorizationContext>>> mappings) {
+    public RequestMatcherDelegatingAuthorizationManager(List<RequestMatcherEntry<AuthorizationManager>> mappings) {
         this.mappings = mappings;
     }
 
     @Override
     public AuthorizationDecision check(Authentication authentication, HttpServletRequest request) {
 
-        for (RequestMatcherEntry<AuthorizationManager<RequestAuthorizationContext>> mapping : this.mappings) {
+        for (RequestMatcherEntry<AuthorizationManager> mapping : this.mappings) {
             RequestMatcher matcher = mapping.getRequestMatcher();
             RequestMatcher.MatchResult matchResult = matcher.matcher(request);
             if (matchResult.isMatch()) {
-                AuthorizationManager<RequestAuthorizationContext> manager = mapping.getEntry();
+                AuthorizationManager manager = mapping.getEntry();
 
-                return manager.check(authentication, new RequestAuthorizationContext(request, matchResult.getVariables()));
+                return manager.check(authentication, request);
             }
         }
 
