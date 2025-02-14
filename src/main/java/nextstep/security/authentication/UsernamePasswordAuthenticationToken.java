@@ -3,6 +3,7 @@ package nextstep.security.authentication;
 import nextstep.security.SimpleGrantedAuthority;
 import nextstep.security.authorization.GrantedAuthority;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -18,7 +19,12 @@ public class UsernamePasswordAuthenticationToken implements Authentication {
         this.principal = principal;
         this.credentials = credentials;
         this.authenticated = authenticated;
-        this.authorities = authorities.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
+
+        Set<GrantedAuthority> grantedAuthorities = new HashSet<>();
+        for (String authority : authorities) {
+            grantedAuthorities.add(new SimpleGrantedAuthority(authority));
+        }
+        this.authorities = grantedAuthorities;
     }
 
     public static UsernamePasswordAuthenticationToken unauthenticated(String principal, String credentials) {
