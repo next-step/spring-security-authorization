@@ -2,15 +2,17 @@ package nextstep.security.authorization;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import nextstep.security.authentication.Authentication;
 import nextstep.security.context.SecurityContextHolder;
-import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
 
-public class CheckAuthenticationFilter extends OncePerRequestFilter {
+public class CheckAuthenticationFilter extends GenericFilterBean {
 
     private final AuthorizationManager<HttpServletRequest> authorizationManager;
 
@@ -19,24 +21,26 @@ public class CheckAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         try {
-            AuthorizationDecision authorizationDecision = authorizationManager.check(authentication, request);
+            AuthorizationDecision authorizationDecision = authorizationManager.check(authentication, (HttpServletRequest) request);
             authorizationCheck(authorizationDecision);
         } catch (ForbiddenException e) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            ((HttpServletResponse) response).setStatus(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
-        filterChain.doFilter(request, response);
+        chain.doFilter(request, response);
     }
+
 
     private static void authorizationCheck(AuthorizationDecision authorizationDecision) {
         if (authorizationDecision.isDeny()) {
             throw new ForbiddenException();
         }
     }
+
+
 }
