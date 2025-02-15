@@ -5,9 +5,7 @@ import nextstep.app.domain.MemberRepository;
 import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.authentication.BasicAuthenticationFilter;
 import nextstep.security.authentication.UsernamePasswordAuthenticationFilter;
-import nextstep.security.authorization.CheckAuthenticationFilter;
-import nextstep.security.authorization.SecuredAspect;
-import nextstep.security.authorization.SecuredMethodInterceptor;
+import nextstep.security.authorization.*;
 import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.DelegatingFilterProxy;
 import nextstep.security.config.FilterChainProxy;
@@ -18,7 +16,9 @@ import nextstep.security.userdetails.UserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.http.HttpMethod;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -46,11 +46,7 @@ public class SecurityConfig {
     public SecuredMethodInterceptor securedMethodInterceptor() {
         return new SecuredMethodInterceptor();
     }
-//    @Bean
-//    public SecuredAspect securedAspect() {
-//        return new SecuredAspect();
-//    }
-
+    
     @Bean
     public SecurityFilterChain securityFilterChain() {
         return new DefaultSecurityFilterChain(
@@ -58,9 +54,7 @@ public class SecurityConfig {
                         new SecurityContextHolderFilter(),
                         new UsernamePasswordAuthenticationFilter(userDetailsService()),
                         new BasicAuthenticationFilter(userDetailsService()),
-                        new CheckAuthenticationFilter()
-                )
-        );
+                        new AuthorizationFilter(requestAuthorizationManager())));
     }
 
     @Bean
@@ -86,5 +80,15 @@ public class SecurityConfig {
                 }
             };
         };
+    }
+
+    @Bean
+    public RequestAuthorizationManager requestAuthorizationManager() {
+        List<RequestMatcherEntry<AuthorizationManager>> mappings = new ArrayList<>();
+        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members/me"), new AuthenticatedAuthorizationManager()));
+        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members"), new HasAuthorityAuthorizationManager("ADMIN")));
+        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/search"), new PermitAllAuthorizationManager()));
+        mappings.add(new RequestMatcherEntry<>(new AnyRequestMatcher(), new PermitAllAuthorizationManager()));
+        return new RequestAuthorizationManager(mappings);
     }
 }

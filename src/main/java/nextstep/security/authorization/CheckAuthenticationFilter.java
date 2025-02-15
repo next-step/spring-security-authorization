@@ -16,14 +16,15 @@ public class CheckAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (!DEFAULT_REQUEST_URI.equals(request.getRequestURI())) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+
+        if (!DEFAULT_REQUEST_URI.equals(request.getRequestURI())) {
+            request.setAttribute("username", authentication.getPrincipal());
+            filterChain.doFilter(request, response);
             return;
         }
 
