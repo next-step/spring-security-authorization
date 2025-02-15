@@ -13,7 +13,6 @@ import nextstep.security.config.SecurityFilterChain;
 import nextstep.security.context.SecurityContextHolderFilter;
 import nextstep.security.matcher.AnyRequestMatcher;
 import nextstep.security.matcher.MvcRequestMatcher;
-import nextstep.security.matcher.RequestMatcherEntry;
 import nextstep.security.userdetails.UserDetails;
 import nextstep.security.userdetails.UserDetailsService;
 import org.springframework.context.annotation.Bean;
@@ -21,7 +20,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.http.HttpMethod;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -64,16 +62,17 @@ public class SecurityConfig {
                .build();
     }
 
+
     @Bean
     public RequestMatcherDelegatingAuthorizationManager requestAuthorizationManager() {
-        List<RequestMatcherEntry<AuthorizationManager>> mappings = new ArrayList<>();
-        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members/me"), new AuthenticatedAuthorizationManager()));
-        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members"), new HasAuthorityAuthorizationManager("ADMIN")));
-        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/search"), new PermitAllAuthorizationManager()));
-        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.POST, "/private"), new DenyAllAuthorizationManager()));
-        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/hierarchy"), new HasAuthorityAuthorizationManager("USER").withRoleHierarchy(roleHierarchy())));
-        mappings.add(new RequestMatcherEntry<>(new AnyRequestMatcher(), new PermitAllAuthorizationManager()));
-        return new RequestMatcherDelegatingAuthorizationManager(mappings);
+        return RequestMatcherAuthorizationManagerBuilder.withRoleHierarchy(roleHierarchy())
+                .authenticated(new MvcRequestMatcher(HttpMethod.GET, "/members/me"))
+                .permitAll(new MvcRequestMatcher(HttpMethod.GET, "/search"))
+                .hasAuthority("ADMIN", new MvcRequestMatcher(HttpMethod.GET, "/members"))
+                .hasAuthority("USER", new MvcRequestMatcher(HttpMethod.POST, "/hierarchy"))
+                .denyAll(new MvcRequestMatcher(HttpMethod.POST, "/private"))
+                .permitAll(new AnyRequestMatcher())
+        .build();
     }
 
     @Bean

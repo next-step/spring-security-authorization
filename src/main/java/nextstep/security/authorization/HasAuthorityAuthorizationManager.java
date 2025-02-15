@@ -6,10 +6,15 @@ import java.util.Collection;
 
 public class HasAuthorityAuthorizationManager implements AuthorizationManager {
     private final String allowRole;
-    private RoleHierarchy roleHierarchy = new NullRoleHierarchy();
+    private final RoleHierarchy roleHierarchy;
 
     public HasAuthorityAuthorizationManager(String allowRole) {
+        this(allowRole, new NullRoleHierarchy());
+    }
+
+    private HasAuthorityAuthorizationManager(String allowRole, RoleHierarchy roleHierarchy) {
         this.allowRole = allowRole;
+        this.roleHierarchy = roleHierarchy;
     }
 
     @Override
@@ -31,8 +36,7 @@ public class HasAuthorityAuthorizationManager implements AuthorizationManager {
         return reachableGrantedAuthorities.contains(allowRole);
     }
 
-    public HasAuthorityAuthorizationManager withRoleHierarchy(RoleHierarchy roleHierarchy) {
-        this.roleHierarchy = roleHierarchy;
-        return this;
+    public static HasAuthorityAuthorizationManager withRoleHierarchy(String allowRole, RoleHierarchy roleHierarchy) {
+        return new HasAuthorityAuthorizationManager(allowRole, roleHierarchy);
     }
 }

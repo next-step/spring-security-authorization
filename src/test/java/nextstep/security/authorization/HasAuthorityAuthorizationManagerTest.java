@@ -64,8 +64,8 @@ class HasAuthorityAuthorizationManagerTest {
                 .implies("USER")
                 .build();
 
-        HasAuthorityAuthorizationManager authenticatedAuthorizationManager = new HasAuthorityAuthorizationManager(allowedRole);
-        authenticatedAuthorizationManager.withRoleHierarchy(roleHierarchy);
+        HasAuthorityAuthorizationManager authenticatedAuthorizationManager = HasAuthorityAuthorizationManager.withRoleHierarchy(allowedRole, roleHierarchy);
+
 
         Authentication authentication = TestAuthentication.admin();
 
@@ -87,11 +87,9 @@ class HasAuthorityAuthorizationManagerTest {
                 .implies("USER")
                 .build();
 
-        HasAuthorityAuthorizationManager authenticatedAuthorizationManager = new HasAuthorityAuthorizationManager(allowedRole);
-        authenticatedAuthorizationManager.withRoleHierarchy(roleHierarchy);
+        HasAuthorityAuthorizationManager authenticatedAuthorizationManager = HasAuthorityAuthorizationManager.withRoleHierarchy(allowedRole, roleHierarchy);
 
         Authentication authentication = TestAuthentication.user();
-
 
         // when
         AuthorizationDecision check = authenticatedAuthorizationManager.check(authentication, new MockHttpServletRequest());
