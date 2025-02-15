@@ -115,7 +115,6 @@ class FormLoginTest {
 
         ResultActions membersResponse = mockMvc.perform(get("/members")
                 .session(session)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         );
 
         membersResponse
@@ -131,7 +130,6 @@ class FormLoginTest {
 
         ResultActions response = mockMvc.perform(get("/members/me")
                 .session(session)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         );
 
         response.andDo(print())
@@ -147,6 +145,20 @@ class FormLoginTest {
 
         response.andDo(print())
                 .andExpect(status().isUnauthorized());
+    }
+
+    @DisplayName("허용되지 않은 경로는 인증 되었더라도 접근 불가")
+    @ParameterizedTest(name = "{1} 사용자")
+    @MethodSource("provideMemberUsernamePassword")
+    void request_fail_not_allowed_uris(Member member, String role) throws Exception {
+        MockHttpSession session = doFormLogin(member.getEmail(), member.getPassword());
+
+        ResultActions response = mockMvc.perform(get("/not-allowed-uri")
+                .session(session)
+        );
+
+        response.andDo(print())
+                .andExpect(status().isForbidden());
     }
 
     private static Stream<Arguments> provideMemberUsernamePassword() {
