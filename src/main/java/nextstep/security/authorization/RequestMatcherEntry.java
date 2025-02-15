@@ -3,7 +3,7 @@ package nextstep.security.authorization;
 import jakarta.servlet.http.HttpServletRequest;
 import nextstep.security.authentication.Authentication;
 
-public class RequestMatcherEntry<T> {
+public class RequestMatcherEntry<T extends AuthorizationManager> {
 
     private final RequestMatcher requestMatcher;
     private final T entry;
@@ -18,6 +18,6 @@ public class RequestMatcherEntry<T> {
     }
 
     public AuthorizationDecision check(Authentication authentication, HttpServletRequest request) {
-        return ((AuthorizationManager) entry).check(authentication, request);
+        return entry.check(authentication, request);
     }
 }
