@@ -37,3 +37,13 @@
 // AuthoritiesAuthorizationManager
 // SecureMethodSecurityConfiguration
 // SecuredAuthorizationManager
+
+
+## 🚀 선택 - RoleHierarchy
+
+요구 사항
+
+    RoleHierarchy는 기본적으로 NullRoleHierarchy가 설정된 다음 계층 구조의 권한 설정이 생길 경우 RoleHierarchyImpl가 동작하도록 되어있다. 실제 시큐리티의 구조를 참고해서 아래와 같이 설정하도록 수정한다.
+- [x] RoleHierarchy를 설정하지 않았을 때 동작하도록 NullRoleHierarchy을 구현한다.\
+따라서, 설정하지 않았을 땐 기본적으로 NullRoleHierarchy가 동작하고, 설정할 경우에는 RoleHierarchyImpl가 동작하도록 한다.
+- [x] GrantedAuthority의 구현은 선택, 필수는 아니다.
