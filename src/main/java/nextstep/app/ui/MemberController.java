@@ -4,7 +4,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import nextstep.app.domain.Member;
 import nextstep.app.domain.MemberRepository;
 import nextstep.app.exception.UserNotFoundException;
+import nextstep.security.authentication.Authentication;
 import nextstep.security.authorization.Secured;
+import nextstep.security.context.SecurityContext;
+import nextstep.security.context.SecurityContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -29,9 +32,11 @@ public class MemberController {
     }
 
     @GetMapping("/members/me")
-    public ResponseEntity<Member> get(HttpServletRequest request) {
-        String username = (String) request.getAttribute("username");
-        Member member = memberRepository.findByEmail(username)
+    public ResponseEntity<Member> get() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getPrincipal().toString();
+
+        Member member = memberRepository.findByEmail(email)
                 .orElseThrow(UserNotFoundException::new);
 
         return ResponseEntity.ok(member);
