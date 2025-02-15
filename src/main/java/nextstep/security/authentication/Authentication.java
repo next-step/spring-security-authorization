@@ -5,7 +5,7 @@ import nextstep.security.core.GrantedAuthority;
 
 public interface Authentication {
 
-    Collection<? extends GrantedAuthority> getAuthorities();
+    Collection<GrantedAuthority> getAuthorities();
 
     Object getCredentials();
 

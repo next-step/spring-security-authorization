@@ -40,7 +40,7 @@ public class AuthorityAuthorizationManager<T> implements AuthorizationManager<T>
         return false;
     }
 
-    private Collection<? extends GrantedAuthority> getGrantedAuthorities(Authentication authentication) {
+    private Collection<GrantedAuthority> getGrantedAuthorities(Authentication authentication) {
         return this.roleHierarchy.getReachableGrantedAuthorities(authentication.getAuthorities());
     }
 }
