@@ -15,32 +15,30 @@ import java.io.IOException;
 public class CheckAuthenticationFilter extends GenericFilterBean {
 
     private final AuthorizationManager<HttpServletRequest> authorizationManager;
+    private final AuthorizationDeniedHandler authorizationDeniedHandler;
 
     public CheckAuthenticationFilter(AuthorizationManager<HttpServletRequest> authorizationManager) {
+        this(authorizationManager, response -> response.setStatus(HttpServletResponse.SC_FORBIDDEN));
+    }
+
+    public CheckAuthenticationFilter(AuthorizationManager<HttpServletRequest> authorizationManager
+            , AuthorizationDeniedHandler authorizationDeniedHandler
+    ) {
         this.authorizationManager = authorizationManager;
+        this.authorizationDeniedHandler = authorizationDeniedHandler;
     }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        try {
-            AuthorizationDecision authorizationDecision = authorizationManager.check(authentication, (HttpServletRequest) request);
-            authorizationCheck(authorizationDecision);
-        } catch (ForbiddenException e) {
-            ((HttpServletResponse) response).setStatus(HttpServletResponse.SC_FORBIDDEN);
+        AuthorizationDecision authorizationDecision = authorizationManager.check(authentication, (HttpServletRequest) request);
+
+        if (authorizationDecision.isDeny()) {
+            authorizationDeniedHandler.handle((HttpServletResponse) response);
             return;
         }
 
         chain.doFilter(request, response);
     }
-
-
-    private static void authorizationCheck(AuthorizationDecision authorizationDecision) {
-        if (authorizationDecision.isDeny()) {
-            throw new ForbiddenException();
-        }
-    }
-
-
 }
