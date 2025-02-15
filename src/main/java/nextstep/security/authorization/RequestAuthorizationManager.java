@@ -20,6 +20,6 @@ public class RequestAuthorizationManager implements AuthorizationManager<HttpSer
                 .findFirst()
                 .map(RequestMatcherEntry::getEntry)
                 .map(entry -> entry.check(authentication, request))
-                .orElse(new AuthorizationDecision(false));
+                .orElseGet(() -> new AuthorizationDecision(false));
     }
 }
