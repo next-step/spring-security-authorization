@@ -1,11 +1,13 @@
 package nextstep.app;
 
-import jakarta.servlet.http.HttpSession;
 import nextstep.app.domain.Member;
 import nextstep.app.domain.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -24,8 +27,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class FormLoginTest {
 
-    private final Member TEST_ADMIN_MEMBER = new Member("a@a.com", "password", "a", "", Set.of("ADMIN"));
-    private final Member TEST_USER_MEMBER = new Member("b@b.com", "password", "b", "", Set.of());
+    private static final Member TEST_ADMIN_MEMBER = new Member("a@a.com", "password", "a", "", Set.of("ADMIN"));
+    private static final Member TEST_USER_MEMBER = new Member("b@b.com", "password", "b", "", Set.of("USER"));
 
     @Autowired
     private MockMvc mockMvc;
@@ -118,6 +121,39 @@ class FormLoginTest {
         membersResponse
                 .andDo(print())
                 .andExpect(status().isForbidden());
+    }
+
+    @DisplayName("인증된 사용자는 자신의 정보를 조회할 수 있다.")
+    @ParameterizedTest(name = "{1} 사용자")
+    @MethodSource("provideMemberUsernamePassword")
+    void request_success_members_me(Member member, String role) throws Exception {
+        MockHttpSession session = doFormLogin(member.getEmail(), member.getPassword());
+
+        ResultActions response = mockMvc.perform(get("/members/me")
+                .session(session)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        response.andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    @DisplayName("인증되지 않은 사용자는 자신의 정보를 조회할 수 없다.")
+    @Test
+    void request_fail_members_me() throws Exception {
+        ResultActions response = mockMvc.perform(get("/members/me")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        response.andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
+
+    private static Stream<Arguments> provideMemberUsernamePassword() {
+        return Stream.of(
+                Arguments.of(TEST_ADMIN_MEMBER, "ADMIN"),
+                Arguments.of(TEST_USER_MEMBER, "USER")
+        );
     }
 
     private MockHttpSession doFormLogin(String username, String password) throws Exception {
