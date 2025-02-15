@@ -1,5 +1,6 @@
 package nextstep.app;
 
+import jakarta.servlet.http.HttpSession;
 import nextstep.app.domain.Member;
 import nextstep.app.domain.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,8 +16,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.Set;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -108,18 +108,7 @@ class FormLoginTest {
     @DisplayName("일반 회원은 회원 목록 조회 불가능")
     @Test
     void user_login_after_members() throws Exception {
-        MockHttpSession session = new MockHttpSession();
-
-        ResultActions loginResponse = mockMvc.perform(post("/login")
-                .param("username", TEST_USER_MEMBER.getEmail())
-                .param("password", TEST_USER_MEMBER.getPassword())
-                .session(session)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-        );
-
-        loginResponse
-                .andDo(print())
-                .andExpect(status().isOk());
+        MockHttpSession session = doFormLogin(TEST_USER_MEMBER.getEmail(), TEST_USER_MEMBER.getPassword());
 
         ResultActions membersResponse = mockMvc.perform(get("/members")
                 .session(session)
@@ -129,5 +118,22 @@ class FormLoginTest {
         membersResponse
                 .andDo(print())
                 .andExpect(status().isForbidden());
+    }
+
+    private MockHttpSession doFormLogin(String username, String password) throws Exception {
+        MockHttpSession session = new MockHttpSession();
+
+        ResultActions loginResponse = mockMvc.perform(post("/login")
+                .param("username", username)
+                .param("password", password)
+                .session(session)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        loginResponse
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        return session;
     }
 }
