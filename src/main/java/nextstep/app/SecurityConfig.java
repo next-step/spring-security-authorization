@@ -5,9 +5,7 @@ import nextstep.app.domain.MemberRepository;
 import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.authentication.BasicAuthenticationFilter;
 import nextstep.security.authentication.UsernamePasswordAuthenticationFilter;
-import nextstep.security.authorization.CheckAuthenticationFilter;
-import nextstep.security.authorization.SecuredAspect;
-import nextstep.security.authorization.SecuredMethodInterceptor;
+import nextstep.security.authorization.*;
 import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.DelegatingFilterProxy;
 import nextstep.security.config.FilterChainProxy;
@@ -15,10 +13,15 @@ import nextstep.security.config.SecurityFilterChain;
 import nextstep.security.context.SecurityContextHolderFilter;
 import nextstep.security.userdetails.UserDetails;
 import nextstep.security.userdetails.UserDetailsService;
+import nextstep.security.util.matcher.AnyRequestMatcher;
+import nextstep.security.util.matcher.MvcRequestMatcher;
+import nextstep.security.util.matcher.RequestMatcherEntry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.http.HttpMethod;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -33,13 +36,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public DelegatingFilterProxy delegatingFilterProxy() {
-        return new DelegatingFilterProxy(filterChainProxy(List.of(securityFilterChain())));
-    }
-
-    @Bean
-    public FilterChainProxy filterChainProxy(List<SecurityFilterChain> securityFilterChains) {
-        return new FilterChainProxy(securityFilterChains);
+    public DelegatingFilterProxy delegatingFilterProxy(List<SecurityFilterChain> securityFilterChains) {
+        return new DelegatingFilterProxy(new FilterChainProxy(securityFilterChains));
     }
 
     @Bean
@@ -52,13 +50,25 @@ public class SecurityConfig {
 //    }
 
     @Bean
-    public SecurityFilterChain securityFilterChain() {
+    public RequestAuthorizationManager requestAuthorizationManager() {
+        List<RequestMatcherEntry<AuthorizationManager>> mappings = new ArrayList<>();
+
+        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members/me"), new AuthenticatedAuthorizationManager<>()));
+        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members"), new AuthorityAuthorizationManager<>("ADMIN")));
+        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/search"), new PermitAllAuthorizationManager<>()));
+        mappings.add(new RequestMatcherEntry<>(new AnyRequestMatcher(), new DenyAllAuthorizationManager<>()));
+
+        return new RequestAuthorizationManager(mappings);
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(RequestAuthorizationManager requestAuthorizationManager) {
         return new DefaultSecurityFilterChain(
                 List.of(
                         new SecurityContextHolderFilter(),
                         new UsernamePasswordAuthenticationFilter(userDetailsService()),
                         new BasicAuthenticationFilter(userDetailsService()),
-                        new CheckAuthenticationFilter()
+                        new AuthorizationFilter(requestAuthorizationManager)
                 )
         );
     }
