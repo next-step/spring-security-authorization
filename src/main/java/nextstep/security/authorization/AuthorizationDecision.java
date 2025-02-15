@@ -1,10 +1,15 @@
 package nextstep.security.authorization;
 
 public class AuthorizationDecision {
+
     final boolean result;
 
-    public AuthorizationDecision(boolean result) {
+    private AuthorizationDecision(boolean result) {
         this.result = result;
+    }
+
+    public static AuthorizationDecision authorizationDecision() {
+        return new AuthorizationDecision(true);
     }
 
     public static AuthorizationDecision unAuthorizationDecision() {

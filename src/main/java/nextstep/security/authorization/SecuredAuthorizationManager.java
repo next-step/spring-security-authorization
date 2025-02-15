@@ -19,6 +19,6 @@ public class SecuredAuthorizationManager implements AuthorizationManager<MethodI
             return AuthorizationDecision.unAuthorizationDecision();
         }
 
-        return new AuthorizationDecision(true);
+        return AuthorizationDecision.authorizationDecision();
     }
 }

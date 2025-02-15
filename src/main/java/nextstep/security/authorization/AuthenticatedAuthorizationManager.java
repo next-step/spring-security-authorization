@@ -5,6 +5,7 @@ import nextstep.security.authentication.Authentication;
 import nextstep.security.authentication.AuthenticationException;
 
 public class AuthenticatedAuthorizationManager implements AuthorizationManager<HttpServletRequest> {
+
     @Override
     public AuthorizationDecision check(Authentication authentication, HttpServletRequest object) {
         if (authentication == null) {
@@ -12,7 +13,7 @@ public class AuthenticatedAuthorizationManager implements AuthorizationManager<H
         }
 
         if (authentication.isAuthenticated()) {
-            return new AuthorizationDecision(true);
+            return AuthorizationDecision.authorizationDecision();
         }
 
         return AuthorizationDecision.unAuthorizationDecision();

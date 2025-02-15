@@ -18,7 +18,7 @@ public class AuthorityAuthorizationManager implements AuthorizationManager<HttpS
         }
 
         if (authentication.isAuthenticated() && authentication.getAuthorities().contains(allowRole)) {
-            return new AuthorizationDecision(true);
+            return AuthorizationDecision.authorizationDecision();
         }
 
         return AuthorizationDecision.unAuthorizationDecision();

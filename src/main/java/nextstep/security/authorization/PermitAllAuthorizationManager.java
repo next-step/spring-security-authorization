@@ -7,6 +7,6 @@ public class PermitAllAuthorizationManager implements AuthorizationManager<HttpS
 
     @Override
     public AuthorizationDecision check(Authentication authentication, HttpServletRequest object) {
-        return new AuthorizationDecision(true);
+        return AuthorizationDecision.authorizationDecision();
     }
 }
