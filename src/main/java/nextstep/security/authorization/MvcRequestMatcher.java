@@ -15,6 +15,6 @@ public class MvcRequestMatcher implements RequestMatcher {
 
     @Override
     public boolean matches(HttpServletRequest request) {
-        return request.getMethod().matches(method.name()) && request.getRequestURI().matches(uri);
+        return request.getMethod().equalsIgnoreCase(method.name()) && request.getRequestURI().equalsIgnoreCase(uri);
     }
 }
