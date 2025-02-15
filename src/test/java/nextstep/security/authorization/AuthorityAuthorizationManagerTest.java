@@ -25,7 +25,7 @@ class AuthorityAuthorizationManagerTest {
         final MockHttpServletRequest request = new MockHttpServletRequest();
 
         //when
-        final boolean result = manager.check(authentication, request).result;
+        final boolean result = manager.check(authentication, request).isAuthorization();
 
         //then
         assertThat(result).isFalse();
@@ -39,10 +39,10 @@ class AuthorityAuthorizationManagerTest {
         final MockHttpServletRequest request = new MockHttpServletRequest();
 
         //when
-        final AuthorizationDecision result = manager.check(authentication, request);
+        final boolean result = manager.check(authentication, request).isAuthorization();
 
         //then
-        assertThat(result.result).isFalse();
+        assertThat(result).isFalse();
     }
 
     @Test
@@ -54,10 +54,10 @@ class AuthorityAuthorizationManagerTest {
         final MockHttpServletRequest request = new MockHttpServletRequest();
 
         //when
-        final AuthorizationDecision result = manager.check(authentication, request);
+        final boolean result = manager.check(authentication, request).isAuthorization();
 
         //then
-        assertThat(result.result).isFalse();
+        assertThat(result).isFalse();
     }
 
     @Test
@@ -69,9 +69,9 @@ class AuthorityAuthorizationManagerTest {
         final MockHttpServletRequest request = new MockHttpServletRequest();
 
         //when
-        final AuthorizationDecision result = manager.check(authentication, request);
+        final boolean result = manager.check(authentication, request).isAuthorization();
 
         //then
-        assertThat(result.result).isTrue();
+        assertThat(result).isTrue();
     }
 }

@@ -23,10 +23,10 @@ class PermitAllAuthorizationManagerTest {
         final MockHttpServletRequest request = new MockHttpServletRequest();
 
         //when
-        final AuthorizationDecision result = manager.check(authentication, request);
+        final boolean result = manager.check(authentication, request).isAuthorization();
 
         //then
-        assertThat(result.result).isTrue();
+        assertThat(result).isTrue();
     }
 
     @Test
@@ -37,9 +37,9 @@ class PermitAllAuthorizationManagerTest {
         final MockHttpServletRequest request = new MockHttpServletRequest();
 
         //when
-        final AuthorizationDecision result = manager.check(authentication, request);
+        final boolean result = manager.check(authentication, request).isAuthorization();
 
         //then
-        assertThat(result.result).isTrue();
+        assertThat(result).isTrue();
     }
 }

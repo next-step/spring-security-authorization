@@ -26,7 +26,7 @@ class AuthenticatedAuthorizationManagerTest {
         final AuthorizationDecision result = manager.check(authentication, request);
 
         //then
-        assertThat(result.result).isFalse();
+        assertThat(result.isAuthorization()).isFalse();
     }
 
     @Test
@@ -40,7 +40,7 @@ class AuthenticatedAuthorizationManagerTest {
         final AuthorizationDecision result = manager.check(authentication, request);
 
         //then
-        assertThat(result.result).isTrue();
+        assertThat(result.isAuthorization()).isTrue();
     }
 
     @Test
@@ -54,6 +54,6 @@ class AuthenticatedAuthorizationManagerTest {
         final AuthorizationDecision result = manager.check(authentication, request);
 
         //then
-        assertThat(result.result).isFalse();
+        assertThat(result.isAuthorization()).isFalse();
     }
 }

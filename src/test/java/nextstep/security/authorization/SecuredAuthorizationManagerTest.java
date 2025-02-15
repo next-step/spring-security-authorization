@@ -44,7 +44,7 @@ class SecuredAuthorizationManagerTest {
                 when(mockInvocation.getMethod()).thenReturn(securedMethod);
 
                 //when
-                final boolean result = authorizationManager.check(authentication, mockInvocation).result;
+                final boolean result = authorizationManager.check(authentication, mockInvocation).isAuthorization();
 
                 //then
                 assertThat(result).isTrue();
@@ -62,7 +62,7 @@ class SecuredAuthorizationManagerTest {
                 when(mockInvocation.getMethod()).thenReturn(securedMethod);
 
                 //when
-                final boolean result = authorizationManager.check(authentication, mockInvocation).result;
+                final boolean result = authorizationManager.check(authentication, mockInvocation).isAuthorization();
 
                 //then
                 assertThat(result).isFalse();
@@ -85,7 +85,7 @@ class SecuredAuthorizationManagerTest {
             when(mockInvocation.getMethod()).thenReturn(securedMethod);
 
             //when
-            final boolean result = authorizationManager.check(authentication, mockInvocation).result;
+            final boolean result = authorizationManager.check(authentication, mockInvocation).isAuthorization();
 
             //then
             assertThat(result).isFalse();

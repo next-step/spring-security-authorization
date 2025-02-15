@@ -21,8 +21,7 @@ class DenyAllAuthorizationManagerTest {
         final MockHttpServletRequest request = new MockHttpServletRequest();
 
         //when
-        final AuthorizationDecision decision = manager.check(authentication, request);
-        final boolean result = decision.result;
+        final boolean result = manager.check(authentication, request).isAuthorization();
 
         //then
         assertThat(result).isFalse();

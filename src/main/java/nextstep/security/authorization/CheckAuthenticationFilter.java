@@ -23,7 +23,7 @@ public class CheckAuthenticationFilter extends OncePerRequestFilter {
 
         AuthorizationDecision decision = authorizationManager.check(authentication, request);
 
-        if (decision.result) {
+        if (decision.isAuthorization()) {
             filterChain.doFilter(request, response);
             return;
         }

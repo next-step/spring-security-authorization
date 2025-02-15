@@ -29,7 +29,7 @@ public class SecuredMethodInterceptor implements MethodInterceptor, PointcutAdvi
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             AuthorizationDecision authorizationDecision = authorizationManager.check(authentication,invocation);
 
-            if (!authorizationDecision.result) {
+            if (!authorizationDecision.isAuthorization()) {
                 throw new ForbiddenException();
             }
         }

@@ -27,7 +27,7 @@ class RequestAuthorizationManagerTest {
         final Authentication authentication = null;
 
         //when
-        final boolean result = manager.check(authentication, request).result;
+        final boolean result = manager.check(authentication, request).isAuthorization();
 
         //then
         assertThat(result).isFalse();
@@ -46,7 +46,7 @@ class RequestAuthorizationManagerTest {
         final Authentication authentication = UsernamePasswordAuthenticationToken.authenticated("id", "password", Set.of("ADMIN"));
 
         //when
-        final boolean result = manager.check(authentication, request).result;
+        final boolean result = manager.check(authentication, request).isAuthorization();
 
         //then
         assertThat(result).isFalse();
@@ -65,7 +65,7 @@ class RequestAuthorizationManagerTest {
         final Authentication authentication = UsernamePasswordAuthenticationToken.authenticated("id", "password", Set.of("ADMIN"));
 
         //when
-        final boolean result = manager.check(authentication, request).result;
+        final boolean result = manager.check(authentication, request).isAuthorization();
 
         //then
         assertThat(result).isTrue();
