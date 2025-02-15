@@ -8,13 +8,13 @@ import org.springframework.mock.web.MockHttpServletRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class HasAuthorityAuthorizationManagerTest {
+class AuthorityAuthorizationManagerTest {
     private static final String ADMIN_ROLE = "ADMIN";
 
     @DisplayName("Authenticate가 비어 있으면 인가를 거부한다")
     @Test
     void unAuthorized() {
-        HasAuthorityAuthorizationManager authenticatedAuthorizationManager = new HasAuthorityAuthorizationManager(ADMIN_ROLE);
+        AuthorityAuthorizationManager authenticatedAuthorizationManager = AuthorityAuthorizationManager.hasRole(ADMIN_ROLE);
 
         AuthorizationDecision check = authenticatedAuthorizationManager.check(null, new MockHttpServletRequest());
 
@@ -24,7 +24,7 @@ class HasAuthorityAuthorizationManagerTest {
     @DisplayName("인증되어 있지 않으면 인가를 거부한다")
     @Test
     void unAuthenticate() {
-        HasAuthorityAuthorizationManager authenticatedAuthorizationManager = new HasAuthorityAuthorizationManager(ADMIN_ROLE);
+        AuthorityAuthorizationManager authenticatedAuthorizationManager = AuthorityAuthorizationManager.hasRole(ADMIN_ROLE);
         Authentication authentication = TestAuthentication.unAuthenticated();
 
         AuthorizationDecision check = authenticatedAuthorizationManager.check(authentication, new MockHttpServletRequest());
@@ -35,7 +35,7 @@ class HasAuthorityAuthorizationManagerTest {
     @DisplayName("매칭된 권한이 없으면 인가를 거부한다")
     @Test
     void authenticate() {
-        HasAuthorityAuthorizationManager authenticatedAuthorizationManager = new HasAuthorityAuthorizationManager(ADMIN_ROLE);
+        AuthorityAuthorizationManager authenticatedAuthorizationManager = AuthorityAuthorizationManager.hasRole(ADMIN_ROLE);
         Authentication authentication = TestAuthentication.user();
 
         AuthorizationDecision check = authenticatedAuthorizationManager.check(authentication, new MockHttpServletRequest());
@@ -46,7 +46,7 @@ class HasAuthorityAuthorizationManagerTest {
     @DisplayName("매칭된 권한이 있으면 인증을 허용한다")
     @Test
     void admin_authenticate() {
-        HasAuthorityAuthorizationManager authenticatedAuthorizationManager = new HasAuthorityAuthorizationManager(ADMIN_ROLE);
+        AuthorityAuthorizationManager authenticatedAuthorizationManager = AuthorityAuthorizationManager.hasRole(ADMIN_ROLE);
         Authentication authentication = TestAuthentication.admin();
 
         AuthorizationDecision check = authenticatedAuthorizationManager.check(authentication, new MockHttpServletRequest());
@@ -64,7 +64,7 @@ class HasAuthorityAuthorizationManagerTest {
                 .implies("USER")
                 .build();
 
-        HasAuthorityAuthorizationManager authenticatedAuthorizationManager = HasAuthorityAuthorizationManager.withRoleHierarchy(allowedRole, roleHierarchy);
+        AuthorityAuthorizationManager authenticatedAuthorizationManager = AuthorityAuthorizationManager.hasRole(allowedRole, roleHierarchy);
 
 
         Authentication authentication = TestAuthentication.admin();
@@ -87,7 +87,7 @@ class HasAuthorityAuthorizationManagerTest {
                 .implies("USER")
                 .build();
 
-        HasAuthorityAuthorizationManager authenticatedAuthorizationManager = HasAuthorityAuthorizationManager.withRoleHierarchy(allowedRole, roleHierarchy);
+        AuthorityAuthorizationManager authenticatedAuthorizationManager = AuthorityAuthorizationManager.hasRole(allowedRole, roleHierarchy);
 
         Authentication authentication = TestAuthentication.user();
 
@@ -96,5 +96,20 @@ class HasAuthorityAuthorizationManagerTest {
 
         // then
         assertThat(check.isDeny()).isFalse();
+    }
+
+    @DisplayName("hasAnyRole 은 여러개의 권한에 대해서 인가처리를 한다")
+    @Test
+    void hasAnyRole() {
+        // given
+        AuthorityAuthorizationManager authenticatedAuthorizationManager = AuthorityAuthorizationManager.hasAnyRole("USER","ADMIN");
+
+        // when
+        AuthorizationDecision userCheck = authenticatedAuthorizationManager.check(TestAuthentication.user(), new MockHttpServletRequest());
+        AuthorizationDecision adminCheck = authenticatedAuthorizationManager.check(TestAuthentication.admin(), new MockHttpServletRequest());
+
+        // then
+        assertThat(userCheck.isDeny()).isFalse();
+        assertThat(adminCheck.isDeny()).isFalse();
     }
 }

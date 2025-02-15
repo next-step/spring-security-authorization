@@ -36,7 +36,7 @@ public class RequestMatcherAuthorizationManagerBuilder {
 
     public RequestMatcherAuthorizationManagerBuilder hasAuthority(String role, MvcRequestMatcher... requestMatchers) {
         for (RequestMatcher requestMatcher : requestMatchers) {
-            mappings.add(new RequestMatcherEntry<>(requestMatcher, HasAuthorityAuthorizationManager.withRoleHierarchy(role, roleHierarchy)));
+            mappings.add(new RequestMatcherEntry<>(requestMatcher, AuthorityAuthorizationManager.hasRole(role, roleHierarchy)));
         }
         return this;
     }

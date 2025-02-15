@@ -51,4 +51,8 @@ public class TestAuthentication implements Authentication {
     public static Authentication authenticated() {
         return new TestAuthentication(Set.of(), true);
     }
+
+    public static Authentication authenticated(String role) {
+        return new TestAuthentication(Set.of(role), true);
+    }
 }
