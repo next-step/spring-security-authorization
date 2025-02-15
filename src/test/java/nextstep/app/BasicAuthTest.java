@@ -106,7 +106,7 @@ class BasicAuthTest {
                 .andExpect(jsonPath("$.password").value("password"));
     }
 
-    @DisplayName("인증된 사용자는 자신의 정보를 조회할 수 있다.")
+    @DisplayName("인증되지 않은 사용자는 자신의 정보를 조회할 수 없다.")
     @Test
     void request_fail_members_me() throws Exception {
         String token = Base64.getEncoder().encodeToString((TEST_ADMIN_MEMBER.getEmail() + ":" + "invalid").getBytes());
