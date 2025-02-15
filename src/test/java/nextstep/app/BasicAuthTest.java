@@ -89,4 +89,18 @@ class BasicAuthTest {
 
         response.andExpect(status().isUnauthorized());
     }
+
+    @Test
+    @DisplayName("요구사항 외의 URI를 요청했을 때, 거절된다.")
+    void invalidUri() throws Exception {
+        //given
+        final String token = Base64.getEncoder().encodeToString((TEST_ADMIN_MEMBER.getEmail() + ":" + TEST_ADMIN_MEMBER.getPassword()).getBytes());
+        final String invalidUri = "/testest";
+
+        //when & then
+        mockMvc.perform(get(invalidUri)
+                .header("Authorization", "Basic " + token)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        ).andExpect(status().isForbidden());
+    }
 }
