@@ -1,26 +1,27 @@
 package nextstep.security.authorization;
 
-import nextstep.security.authentication.Authentication;
-import nextstep.security.context.SecurityContextHolder;
-import org.springframework.web.filter.OncePerRequestFilter;
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import nextstep.security.authentication.Authentication;
+import nextstep.security.context.SecurityContextHolder;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Set;
 
+/**
+ * AuthorizationFilter 역할
+ * - 아직까지 인증이 안되었다면 401 응답.
+ * - 인증 되었다면 AuthorizatioManager 에게 인가 위임
+ * - 인가되지 않았을 경우 403 응답
+ */
 public class AuthorizationFilter extends OncePerRequestFilter {
 
-    private static final List<String> PUBLIC_URIS = List.of("/login", "/search");
-    private static final List<String> AUTHENTICATION_REQUIRED_URIS = List.of("/members", "/members/me"); //
+    private final AuthorizationManager<HttpServletRequest> authorizationManager;
 
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        return PUBLIC_URIS.contains(request.getRequestURI());
+    public AuthorizationFilter(AuthorizationManager<HttpServletRequest> authorizationManager) {
+        this.authorizationManager = authorizationManager;
     }
 
     @Override
@@ -29,38 +30,19 @@ public class AuthorizationFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
-        if (!isAuthenticated()) { // 인증이 필요한데, 인증되지 않은 경우 401 응답
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 
-        if (request.getRequestURI().equals("/members/me")) { // 인증된 사용자 허용
-            filterChain.doFilter(request, response);
+        AuthorizationDecision decision = this.authorizationManager.check(authentication, request);
+        if (decision != null && decision.denied()) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
-        if (request.getRequestURI().equals("/members")) { // ADMIN만 허용
-            if (getAuthorities().contains("ADMIN")) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-        }
-
-        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-    }
-
-    private boolean isAuthenticated() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication != null && authentication.isAuthenticated();
-    }
-
-    private Set<String> getAuthorities() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null) {
-            return Set.of();
-        }
-
-        return authentication.getAuthorities();
+        filterChain.doFilter(request, response);
     }
 }
+
