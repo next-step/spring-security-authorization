@@ -3,16 +3,16 @@ package nextstep.security.authorization;
 import jakarta.servlet.http.HttpServletRequest;
 import nextstep.security.authentication.Authentication;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
 public class AuthorityAuthorizationManager implements AuthorizationManager<HttpServletRequest> {
-    private final Set<String> defined_authorities = new HashSet<>();
+    private final RoleHierarchy defined_authorities;
+    private final String allowedRoles;
 
-    public AuthorityAuthorizationManager(String... authorities) {
-        Collections.addAll(this.defined_authorities, authorities);
+    public AuthorityAuthorizationManager(RoleHierarchy roleHierarchy, String authority) {
+        defined_authorities = roleHierarchy;
+        allowedRoles = authority;
     }
 
     @Override
@@ -20,15 +20,23 @@ public class AuthorityAuthorizationManager implements AuthorizationManager<HttpS
         if (Objects.isNull(authentication)) {
             return new AuthorizationDecision(false);
         }
-        Set<String> authorities = authentication.getAuthorities();
+        Set<String> requestedAuthorities = authentication.getAuthorities();
 
-        if (noAuthority(authorities, this.defined_authorities)) {
-            return new AuthorizationDecision(false);
+        if (hasAuthority(requestedAuthorities)) {
+            return new AuthorizationDecision(true);
+
         }
-        return new AuthorizationDecision(true);
+        return new AuthorizationDecision(false);
     }
 
-    public boolean noAuthority(Set<String> authorities, Set<String> myAuthorities) {
-        return Collections.disjoint(authorities, myAuthorities);
+    public boolean hasAuthority(Set<String> requestedAuthorities) {
+        for (String requestedAuthority : requestedAuthorities) {
+            Set<String> reachableRoleAuthorities = defined_authorities.getReachableRoleAuthorities(requestedAuthority);
+            boolean contains = reachableRoleAuthorities.contains(allowedRoles);
+            if (contains) {
+                return true;
+            }
+        }
+        return false;
     }
 }
