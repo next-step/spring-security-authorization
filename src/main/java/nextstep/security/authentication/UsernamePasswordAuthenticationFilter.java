@@ -17,28 +17,21 @@ import java.util.List;
 import java.util.Map;
 
 public class UsernamePasswordAuthenticationFilter extends GenericFilterBean {
-    public static final String SPRING_SECURITY_CONTEXT_KEY = "SPRING_SECURITY_CONTEXT";
+
     private static final String DEFAULT_REQUEST_URI = "/login";
 
     private final AuthenticationManager authenticationManager;
     private final HttpSessionSecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
-    private List<String> supportsUri;
-
-    public UsernamePasswordAuthenticationFilter(UserDetailsService userDetailsService, List<String> supportsUri) {
+    public UsernamePasswordAuthenticationFilter(UserDetailsService userDetailsService) {
         this.authenticationManager = new ProviderManager(
                 List.of(new DaoAuthenticationProvider(userDetailsService))
         );
-        this.supportsUri = supportsUri;
-    }
-
-    public UsernamePasswordAuthenticationFilter(UserDetailsService userDetailsService) {
-        this(userDetailsService, List.of(DEFAULT_REQUEST_URI));
     }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        if (!supportsUri.contains(((HttpServletRequest) request).getRequestURI())) {
+        if (!DEFAULT_REQUEST_URI.equals(((HttpServletRequest) request).getRequestURI())) {
             chain.doFilter(request, response);
             return;
         }
@@ -56,6 +49,7 @@ public class UsernamePasswordAuthenticationFilter extends GenericFilterBean {
             SecurityContextHolder.setContext(context);
 
             securityContextRepository.saveContext(context, (HttpServletRequest) request, (HttpServletResponse) response);
+
         } catch (Exception e) {
             ((HttpServletResponse) response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         }
@@ -71,6 +65,5 @@ public class UsernamePasswordAuthenticationFilter extends GenericFilterBean {
         } catch (Exception e) {
             return null;
         }
-
     }
 }

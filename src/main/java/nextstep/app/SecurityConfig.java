@@ -63,7 +63,7 @@ public class SecurityConfig {
         return new DefaultSecurityFilterChain(
                 List.of(
                         new SecurityContextHolderFilter(),
-                        new UsernamePasswordAuthenticationFilter(userDetailsService(), List.of("/login", "/members/me")),
+                        new UsernamePasswordAuthenticationFilter(userDetailsService()),
                         new BasicAuthenticationFilter(userDetailsService()),
                         new CheckAuthenticationFilter(requestAuthorizationManager())
                 )
