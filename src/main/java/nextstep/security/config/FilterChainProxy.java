@@ -1,13 +1,16 @@
 package nextstep.security.config;
 
+import org.springframework.lang.Nullable;
 import org.springframework.web.filter.GenericFilterBean;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
+
 import java.io.IOException;
 import java.util.List;
 
 public class FilterChainProxy extends GenericFilterBean {
+
     private final List<SecurityFilterChain> filterChains;
 
     public FilterChainProxy(List<SecurityFilterChain> filterChains) {
@@ -22,6 +25,7 @@ public class FilterChainProxy extends GenericFilterBean {
         virtualFilterChain.doFilter(request, response);
     }
 
+    @Nullable
     private List<Filter> getFilters(HttpServletRequest request) {
         for (SecurityFilterChain chain : this.filterChains) {
             if (chain.matches(request)) {
@@ -57,6 +61,5 @@ public class FilterChainProxy extends GenericFilterBean {
             Filter nextFilter = this.additionalFilters.get(this.currentPosition - 1);
             nextFilter.doFilter(request, response, this);
         }
-
     }
 }

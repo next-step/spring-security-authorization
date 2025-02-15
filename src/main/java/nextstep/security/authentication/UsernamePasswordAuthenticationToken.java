@@ -20,7 +20,6 @@ public class UsernamePasswordAuthenticationToken implements Authentication {
         return new UsernamePasswordAuthenticationToken(principal, credentials, false, Set.of());
     }
 
-
     public static UsernamePasswordAuthenticationToken authenticated(String principal, String credentials, Set<String> authorities) {
         return new UsernamePasswordAuthenticationToken(principal, credentials, true, authorities);
     }

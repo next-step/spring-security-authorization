@@ -17,11 +17,13 @@ import java.util.Set;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 class FormLoginTest {
+
     private final Member TEST_ADMIN_MEMBER = new Member("a@a.com", "password", "a", "", Set.of("ADMIN"));
     private final Member TEST_USER_MEMBER = new Member("b@b.com", "password", "b", "", Set.of());
 
@@ -46,7 +48,9 @@ class FormLoginTest {
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         );
 
-        loginResponse.andExpect(status().isOk());
+        loginResponse
+                .andDo(print())
+                .andExpect(status().isOk());
     }
 
     @DisplayName("로그인 실패 - 사용자 없음")
@@ -58,7 +62,8 @@ class FormLoginTest {
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         );
 
-        response.andExpect(status().isUnauthorized());
+        response.andDo(print())
+                .andExpect(status().isUnauthorized());
     }
 
     @DisplayName("로그인 실패 - 비밀번호 불일치")
@@ -70,7 +75,8 @@ class FormLoginTest {
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         );
 
-        response.andExpect(status().isUnauthorized());
+        response.andDo(print())
+                .andExpect(status().isUnauthorized());
     }
 
     @DisplayName("로그인 후 세션을 통해 회원 목록 조회")
@@ -85,14 +91,18 @@ class FormLoginTest {
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         );
 
-        loginResponse.andExpect(status().isOk());
+        loginResponse
+                .andDo(print())
+                .andExpect(status().isOk());
 
         ResultActions membersResponse = mockMvc.perform(get("/members")
                 .session(session)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         );
 
-        membersResponse.andExpect(status().isOk());
+        membersResponse
+                .andDo(print())
+                .andExpect(status().isOk());
     }
 
     @DisplayName("일반 회원은 회원 목록 조회 불가능")
@@ -107,13 +117,17 @@ class FormLoginTest {
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         );
 
-        loginResponse.andExpect(status().isOk());
+        loginResponse
+                .andDo(print())
+                .andExpect(status().isOk());
 
         ResultActions membersResponse = mockMvc.perform(get("/members")
                 .session(session)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         );
 
-        membersResponse.andExpect(status().isForbidden());
+        membersResponse
+                .andDo(print())
+                .andExpect(status().isForbidden());
     }
 }
