@@ -2,7 +2,6 @@ package nextstep.security.authorization;
 
 import jakarta.servlet.http.HttpServletRequest;
 import nextstep.security.authentication.Authentication;
-import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.authentication.UsernamePasswordAuthenticationToken;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,12 +11,11 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class RequestAuthorizationManagerTest {
 
     @Test
-    @DisplayName("특정 정책에서 인증이 되지 않아 실패를 반환합니다.")
+    @DisplayName("특정 정책에서 인증이 되지 않아 false를 반환합니다.")
     void exception() {
         //given
         final AuthorizationManager<HttpServletRequest> authorizationManager = new AuthenticatedAuthorizationManager();
@@ -28,8 +26,11 @@ class RequestAuthorizationManagerTest {
         final MockHttpServletRequest request = new MockHttpServletRequest("GET", "/temp");
         final Authentication authentication = null;
 
-        //when & then
-        assertThrows(AuthenticationException.class, () -> manager.check(authentication, request));
+        //when
+        final boolean result = manager.check(authentication, request).result;
+
+        //then
+        assertThat(result).isFalse();
     }
 
     @Test

@@ -2,7 +2,6 @@ package nextstep.security.authorization;
 
 import jakarta.servlet.http.HttpServletRequest;
 import nextstep.security.authentication.Authentication;
-import nextstep.security.authentication.AuthenticationException;
 
 public class AuthorityAuthorizationManager implements AuthorizationManager<HttpServletRequest> {
     private final String allowRole;
@@ -14,7 +13,7 @@ public class AuthorityAuthorizationManager implements AuthorizationManager<HttpS
     @Override
     public AuthorizationDecision check(Authentication authentication, HttpServletRequest request) {
         if (authentication == null) {
-            throw new AuthenticationException();
+            return AuthorizationDecision.unAuthorizationDecision();
         }
 
         if (authentication.isAuthenticated() && authentication.getAuthorities().contains(allowRole)) {

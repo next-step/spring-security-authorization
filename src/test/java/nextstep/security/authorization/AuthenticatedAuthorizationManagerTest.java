@@ -2,7 +2,6 @@ package nextstep.security.authorization;
 
 import jakarta.servlet.http.HttpServletRequest;
 import nextstep.security.authentication.Authentication;
-import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.authentication.UsernamePasswordAuthenticationToken;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,21 +10,23 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class AuthenticatedAuthorizationManagerTest {
 
     private final AuthorizationManager<HttpServletRequest> manager = new AuthenticatedAuthorizationManager();
 
     @Test
-    @DisplayName("authentication가 없으면, 오류가 발생한다.")
+    @DisplayName("authentication가 없으면, false를 반환한다.")
     void isNull() {
         //given
         final Authentication authentication = null;
         final MockHttpServletRequest request = new MockHttpServletRequest();
 
-        //when & then
-        assertThrows(AuthenticationException.class, () -> manager.check(authentication, request));
+        //when
+        final AuthorizationDecision result = manager.check(authentication, request);
+
+        //then
+        assertThat(result.result).isFalse();
     }
 
     @Test
