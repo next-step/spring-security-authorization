@@ -11,8 +11,6 @@ import org.springframework.aop.PointcutAdvisor;
 import org.springframework.aop.framework.AopInfrastructureBean;
 import org.springframework.aop.support.annotation.AnnotationMatchingPointcut;
 
-import java.lang.reflect.Method;
-
 public class SecuredMethodInterceptor implements MethodInterceptor, PointcutAdvisor, AopInfrastructureBean {
 
     private final Pointcut pointcut;
@@ -25,10 +23,6 @@ public class SecuredMethodInterceptor implements MethodInterceptor, PointcutAdvi
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
-        Method method = invocation.getMethod();
-        if (!method.isAnnotationPresent(Secured.class)) {
-            return invocation.proceed();
-        }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
