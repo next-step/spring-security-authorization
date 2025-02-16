@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 public class UsernamePasswordAuthenticationFilter extends GenericFilterBean {
-    public static final String SPRING_SECURITY_CONTEXT_KEY = "SPRING_SECURITY_CONTEXT";
+
     private static final String DEFAULT_REQUEST_URI = "/login";
 
     private final AuthenticationManager authenticationManager;
@@ -65,6 +65,5 @@ public class UsernamePasswordAuthenticationFilter extends GenericFilterBean {
         } catch (Exception e) {
             return null;
         }
-
     }
 }

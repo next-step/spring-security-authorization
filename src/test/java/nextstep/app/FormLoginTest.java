@@ -2,6 +2,7 @@ package nextstep.app;
 
 import nextstep.app.domain.Member;
 import nextstep.app.domain.MemberRepository;
+import nextstep.utils.TestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,10 +12,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.Set;
 
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -35,6 +38,44 @@ class FormLoginTest {
     void setUp() {
         memberRepository.save(TEST_ADMIN_MEMBER);
         memberRepository.save(TEST_USER_MEMBER);
+    }
+
+    @Test
+    @DisplayName("인증된 사용자는 자신의 정보를 조회할 수 있다.")
+    void request_success_members_me() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+
+        mockMvc.perform(post("/login")
+                .param("username", TEST_ADMIN_MEMBER.getEmail())
+                .param("password", TEST_ADMIN_MEMBER.getPassword())
+                .session(session)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        ).andExpect(status().isOk());
+
+        MvcResult mvcResult = mockMvc.perform(get("/members/me")
+                        .session(session)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                ).andExpect(status().isOk())
+                .andReturn();
+
+        final Member result = TestUtils.toDto(mvcResult.getResponse().getContentAsString(), Member.class);
+
+        assertSoftly(it -> {
+            it.assertThat(result).isNotNull();
+            it.assertThat(result.getEmail()).isEqualTo(TEST_ADMIN_MEMBER.getEmail());
+            it.assertThat(result.getName()).isEqualTo(TEST_ADMIN_MEMBER.getName());
+            it.assertThat(result.getPassword()).isEqualTo(TEST_ADMIN_MEMBER.getPassword());
+            it.assertThat(result.getImageUrl()).isEqualTo(TEST_ADMIN_MEMBER.getImageUrl());
+            it.assertThat(result.getRoles()).isEqualTo(TEST_ADMIN_MEMBER.getRoles());
+        });
+    }
+
+    @Test
+    @DisplayName("인증되지 않은 사용자는 자신의 정보를 조회할 수 없다.")
+    void request_fail_members_me() throws Exception {
+        mockMvc.perform(get("/members/me")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        ).andExpect(status().isForbidden());
     }
 
     @DisplayName("로그인 성공")

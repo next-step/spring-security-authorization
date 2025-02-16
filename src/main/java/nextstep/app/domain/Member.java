@@ -3,11 +3,14 @@ package nextstep.app.domain;
 import java.util.Set;
 
 public class Member {
-    private final String email;
-    private final String password;
-    private final String name;
-    private final String imageUrl;
-    private final Set<String> roles;
+    private String email;
+    private String password;
+    private String name;
+    private String imageUrl;
+    private Set<String> roles;
+
+    private Member() {
+    }
 
     public Member(String email, String password, String name, String imageUrl, Set<String> roles) {
         this.email = email;
