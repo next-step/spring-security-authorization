@@ -70,8 +70,9 @@ public class RoleHierarchyImpl implements RoleHierarchy {
                 rolesToVisitSet.remove(lowerRole);
                 if (!visitedRolesSet.add(lowerRole) || !hierarchy.containsKey(lowerRole.getAuthority())) {
                     continue;
-                } else if (roleName.equals(lowerRole.getAuthority())) {
-                    throw new RuntimeException();
+                }
+                if (roleName.equals(lowerRole.getAuthority())) {
+                    throw new CycleInRoleHierarchyException();
                 }
                 rolesToVisitSet.addAll(hierarchy.get(lowerRole.getAuthority()));
             }
