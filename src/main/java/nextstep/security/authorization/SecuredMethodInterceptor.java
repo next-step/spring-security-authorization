@@ -26,14 +26,14 @@ public class SecuredMethodInterceptor implements MethodInterceptor, PointcutAdvi
         Method method = invocation.getMethod();
         if (method.isAnnotationPresent(Secured.class)) {
             Secured secured = method.getAnnotation(Secured.class);
-            HasAuthorityAuthorizationManager hasAuthorityAuthorizationManager = new HasAuthorityAuthorizationManager(secured.value());
+            AuthorityAuthorizationManager authorizationManager = AuthorityAuthorizationManager.hasRole(secured.value());
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
             if (authentication == null) {
                 throw new AuthenticationException();
             }
 
-            hasAuthorityAuthorizationManager.verify(authentication, method);
+            authorizationManager.verify(authentication, method);
         }
         return invocation.proceed();
     }

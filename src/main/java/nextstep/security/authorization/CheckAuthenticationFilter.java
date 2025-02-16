@@ -2,33 +2,43 @@ package nextstep.security.authorization;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import nextstep.security.authentication.Authentication;
 import nextstep.security.context.SecurityContextHolder;
-import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
 
-public class CheckAuthenticationFilter extends OncePerRequestFilter {
+public class CheckAuthenticationFilter extends GenericFilterBean {
 
-    private final RequestMatcherDelegatingAuthorizationManager requestMatcherDelegatingAuthorizationManager;
+    private final AuthorizationManager<HttpServletRequest> authorizationManager;
+    private final AuthorizationDeniedHandler authorizationDeniedHandler;
 
-    public CheckAuthenticationFilter(RequestMatcherDelegatingAuthorizationManager requestMatcherDelegatingAuthorizationManager) {
-        this.requestMatcherDelegatingAuthorizationManager = requestMatcherDelegatingAuthorizationManager;
+    public CheckAuthenticationFilter(AuthorizationManager<HttpServletRequest> authorizationManager) {
+        this(authorizationManager, response -> response.setStatus(HttpServletResponse.SC_FORBIDDEN));
+    }
+
+    public CheckAuthenticationFilter(AuthorizationManager<HttpServletRequest> authorizationManager
+            , AuthorizationDeniedHandler authorizationDeniedHandler
+    ) {
+        this.authorizationManager = authorizationManager;
+        this.authorizationDeniedHandler = authorizationDeniedHandler;
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        AuthorizationDecision authorizationDecision = requestMatcherDelegatingAuthorizationManager.check(authentication, request);
+        AuthorizationDecision authorizationDecision = authorizationManager.check(authentication, (HttpServletRequest) request);
 
         if (authorizationDecision.isDeny()) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            authorizationDeniedHandler.handle((HttpServletResponse) response);
             return;
         }
 
-        filterChain.doFilter(request, response);
+        chain.doFilter(request, response);
     }
 }

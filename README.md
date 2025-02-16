@@ -33,5 +33,20 @@ RequestMatcherDelegatingAuthorizationManager객체의 mappings 정보는 Authori
 - /members는 "ADMIN" 사용자만에게만 권한을 부여하기 위해 HasAuthorityAuthorizationManager로 처리  
   
 
+## 추가 RoleHierarchy
+
+RoleHierarchy 리팩터링
+RoleHierarchy는 기본적으로 NullRoleHierarchy가 설정된 다음 계층 구조의 권한 설정이 생길 경우 RoleHierarchyImpl가 동작하도록 되어있다. 실제 시큐리티의 구조를 참고해서 아래와 같이 설정하도록 수정한다.
+
+```java
+@Bean
+public RoleHierarchy roleHierarchy() {
+    return RoleHierarchyImpl.with()
+            .role("ADMIN").implies("USER")
+            .build();
+}
+```
+
+
 
 

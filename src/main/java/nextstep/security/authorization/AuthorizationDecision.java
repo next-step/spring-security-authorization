@@ -18,4 +18,8 @@ public class AuthorizationDecision {
     public boolean isDeny() {
         return !granted;
     }
+
+    public boolean isGranted() {
+        return granted;
+    }
 }
