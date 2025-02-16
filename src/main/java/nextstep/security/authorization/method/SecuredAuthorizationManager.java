@@ -15,15 +15,11 @@ import org.aopalliance.intercept.MethodInvocation;
 
 public class SecuredAuthorizationManager implements AuthorizationManager<MethodInvocation> {
 
-    private AuthorityAuthorizationManager<Collection<String>> authorityAuthorizationManager;
-    private final RoleHierarchy roleHierarchy;
+    private final AuthorityAuthorizationManager<Collection<String>> authorityAuthorizationManager;
 
-    public SecuredAuthorizationManager(RoleHierarchy roleHierarchy) {
-        this.roleHierarchy = roleHierarchy;
-    }
-
-    public void setAuthorityAuthorizationManager(RoleHierarchy roleHierarchy, Collection<String> authorities) {
-        authorityAuthorizationManager = new AuthorityAuthorizationManager<>(roleHierarchy, authorities);
+    public SecuredAuthorizationManager(
+            AuthorityAuthorizationManager<Collection<String>> authorityAuthorizationManager) {
+        this.authorityAuthorizationManager = authorityAuthorizationManager;
     }
 
     @Override
@@ -33,8 +29,8 @@ public class SecuredAuthorizationManager implements AuthorizationManager<MethodI
         if (authorities.isEmpty()) {
             return null;
         }
-        setAuthorityAuthorizationManager(roleHierarchy, authorities);
-        return authorities.isEmpty() ? null : authorityAuthorizationManager.check(authentication, authorities);
+
+        return authorityAuthorizationManager.check(authentication, authorities);
     }
 
     private Collection<String> getAuthorities(MethodInvocation invocation) {

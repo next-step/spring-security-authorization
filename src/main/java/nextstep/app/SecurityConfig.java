@@ -2,10 +2,10 @@ package nextstep.app;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.stream.Collectors;
 import nextstep.app.domain.Member;
 import nextstep.app.domain.MemberRepository;
+import nextstep.security.access.NullRoleHierarchy;
 import nextstep.security.access.RoleHierarchy;
 import nextstep.security.access.RoleHierarchyImpl;
 import nextstep.security.authentication.AuthenticationException;
@@ -14,7 +14,6 @@ import nextstep.security.authentication.UsernamePasswordAuthenticationFilter;
 import nextstep.security.authorization.AuthorizationFilter;
 import nextstep.security.authorization.AuthorizationManager;
 import nextstep.security.authorization.SecuredMethodInterceptor;
-import nextstep.security.authorization.method.SecuredAuthorizationManager;
 import nextstep.security.authorization.web.AuthenticatedAuthorizationManager;
 import nextstep.security.authorization.web.AuthorityAuthorizationManager;
 import nextstep.security.authorization.web.DenyAllAuthorizationManager;
@@ -32,7 +31,6 @@ import nextstep.security.util.AnyRequestMatcher;
 import nextstep.security.util.MvcRequestMatcher;
 import nextstep.security.util.RequestMatcherEntry;
 import nextstep.security.authorization.web.PermitAllAuthorizationManager;
-import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
@@ -63,7 +61,7 @@ public class SecurityConfig {
 
     @Bean
     public SecuredMethodInterceptor securedMethodInterceptor() {
-        return new SecuredMethodInterceptor(roleHierarchy());
+        return new SecuredMethodInterceptor(new AuthorityAuthorizationManager<>(roleHierarchy()));
     }
 
     @Bean
@@ -78,7 +76,7 @@ public class SecurityConfig {
     public AuthorizationManager<HttpServletRequest> requestAuthorizationManager() {
         List<RequestMatcherEntry<AuthorizationManager>> mappings = new ArrayList<>();
         mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members"),
-                new AuthorityAuthorizationManager(roleHierarchy(), Set.of("ADMIN"))));
+                new AuthorityAuthorizationManager(new NullRoleHierarchy(), Set.of("ADMIN"))));
         mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members/me"),
                 new AuthenticatedAuthorizationManager()));
         mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/search"),
