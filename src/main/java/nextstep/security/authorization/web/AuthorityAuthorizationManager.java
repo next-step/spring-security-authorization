@@ -31,7 +31,6 @@ public class AuthorityAuthorizationManager<T> implements AuthorizationManager<T>
     }
 
     private boolean isAuthorized(Authentication authentication, Collection<String> authorities) {
-        System.out.println(getGrantedAuthorities(authentication));
         for (GrantedAuthority grantedAuthority : getGrantedAuthorities(authentication)) {
             if (authorities.contains(grantedAuthority.getAuthority())) {
                 return true;
