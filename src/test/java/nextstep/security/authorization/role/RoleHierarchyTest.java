@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 class RoleHierarchyTest {
     private RoleHierarchy hierarchy;
@@ -36,7 +37,12 @@ class RoleHierarchyTest {
     @DisplayName("RoleHierarchy 를 설정하지 않았을 경우에는 NullRoleHierarchy 를 사용한다.")
     @Test
     void nullRoleHierarchy() {
-        assertThat(new RoleHierarchyBuilder().build())
-                .isEqualTo(NullRoleHierarchy.getInstance());
+        hierarchy = new RoleHierarchyBuilder().build();
+        assertAll(
+                () -> assertThat(hierarchy)
+                        .isEqualTo(NullRoleHierarchy.getInstance()),
+                () -> assertThat(hierarchy.getReachableGrantedAuthorities(Set.of("ADMIN")))
+                        .isEmpty()
+        );
     }
 }
