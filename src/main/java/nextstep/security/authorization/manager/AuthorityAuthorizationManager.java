@@ -1,14 +1,15 @@
 package nextstep.security.authorization.manager;
 
 import nextstep.security.authentication.Authentication;
-
-import java.util.Set;
+import nextstep.security.authorization.role.RoleHierarchy;
 
 public class AuthorityAuthorizationManager<T> implements AuthorizationManager<T> {
-    private final Set<String> authorities;
+    private final RoleHierarchy roleHierarchy;
+    private final String authority;
 
-    public AuthorityAuthorizationManager(String... authorities) {
-        this.authorities = Set.of(authorities);
+    public AuthorityAuthorizationManager(RoleHierarchy roleHierarchy, String authority) {
+        this.roleHierarchy = roleHierarchy;
+        this.authority = authority;
     }
 
     @Override
@@ -19,15 +20,12 @@ public class AuthorityAuthorizationManager<T> implements AuthorizationManager<T>
     private boolean isGranted(Authentication authentication) {
         return authentication != null
                 && authentication.isAuthenticated()
-                && anyMatch(authentication);
+                && isAuthorized(authentication);
     }
 
-    private boolean anyMatch(Authentication authentication) {
-        for (var authority : authentication.getAuthorities()) {
-            if (authorities.contains(authority)) {
-                return true;
-            }
-        }
-        return false;
+    private boolean isAuthorized(Authentication authentication) {
+        return roleHierarchy.getReachableGrantedAuthorities(
+                authentication.getAuthorities()
+        ).contains(authority);
     }
 }
