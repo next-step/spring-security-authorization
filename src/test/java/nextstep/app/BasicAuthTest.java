@@ -13,8 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Base64;
 import java.util.Set;
@@ -23,7 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
-@Import(BasicAuthTest.TestController.class)
+@Import(TestSecurityConfig.class)
 @AutoConfigureMockMvc
 class BasicAuthTest {
     private final Member TEST_ADMIN_MEMBER = new Member("a@a.com", "password", "a", "", Set.of("ADMIN"));
@@ -133,11 +131,30 @@ class BasicAuthTest {
         response.andExpect(status().isForbidden());
     }
 
-    @RestController
-    static class TestController {
-        @GetMapping("/invalid")
-        public String forbidden() {
-            return "forbidden";
-        }
+    @DisplayName("USER 권한을 가진 사용자가 ADMIN 권한 api를 요청할 경우 403 Forbidden을 반환한다.")
+    @Test
+    void request_fail_with_user_permission() throws Exception {
+        String token = Base64.getEncoder().encodeToString((TEST_USER_MEMBER.getEmail() + ":" + TEST_USER_MEMBER.getPassword()).getBytes());
+
+        ResultActions response = mockMvc.perform(get("/admin-granted")
+                .header("Authorization", "Basic " + token)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        response.andExpect(status().isForbidden());
+    }
+
+    @DisplayName("ADMIN 권한을 가진 사용자가 USER 권한 api를 요청할 경우 정상 동작한다.")
+    @Test
+    void request_success_with_user_granted_with_admin_permission() throws Exception {
+        String token = Base64.getEncoder().encodeToString((TEST_ADMIN_MEMBER.getEmail() + ":" + TEST_ADMIN_MEMBER.getPassword()).getBytes());
+
+        ResultActions response = mockMvc.perform(get("/user-granted")
+                .header("Authorization", "Basic " + token)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        response.andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string("userGranted"));
     }
 }

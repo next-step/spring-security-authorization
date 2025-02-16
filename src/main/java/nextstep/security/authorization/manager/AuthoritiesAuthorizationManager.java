@@ -2,10 +2,23 @@ package nextstep.security.authorization.manager;
 
 import nextstep.security.authentication.Authentication;
 import nextstep.security.authorization.AuthorizationDecision;
+import nextstep.security.authorization.GrantedAuthority;
+import nextstep.security.authorization.role.NullRoleHierarchy;
+import nextstep.security.authorization.role.RoleHierarchy;
 
 import java.util.Collection;
 
 public class AuthoritiesAuthorizationManager implements AuthorizationManager<Collection<String>> {
+
+    private final RoleHierarchy roleHierarchy;
+
+    public AuthoritiesAuthorizationManager() {
+        this(new NullRoleHierarchy());
+    }
+
+    public AuthoritiesAuthorizationManager(RoleHierarchy roleHierarchy) {
+        this.roleHierarchy = roleHierarchy;
+    }
 
     @Override
     public AuthorizationDecision check(Authentication authentication, Collection<String> authorities) {
@@ -19,12 +32,17 @@ public class AuthoritiesAuthorizationManager implements AuthorizationManager<Col
     }
 
     private boolean hasAuthority(Authentication authentication, Collection<String> authorities) {
-        for (String authority : authentication.getAuthorities()) {
-            if (authorities.contains(authority)) {
+        Collection<GrantedAuthority> reachableAuthorities = getReachableAuthorities(authentication);
+        for (GrantedAuthority authority : reachableAuthorities) {
+            if (authorities.contains(authority.getAuthority())) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    private Collection<GrantedAuthority> getReachableAuthorities(Authentication authentication) {
+        return roleHierarchy.getReachableGrantedAuthorities(authentication.getAuthorities());
     }
 }
