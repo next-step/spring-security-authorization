@@ -11,8 +11,11 @@ public class RoleHierarchyBuilder {
         return new ImpliedRoles(role);
     }
 
-    public RoleHierarchyImpl build() {
-        return new RoleHierarchyImpl(hierarchy);
+    public RoleHierarchy build() {
+        if (hierarchy.isEmpty()) {
+            return NullRoleHierarchy.getInstance();
+        }
+        return new DefaultRoleHierarchy(hierarchy);
     }
 
     private RoleHierarchyBuilder implyRoles(String role, String... impliedRoles) {

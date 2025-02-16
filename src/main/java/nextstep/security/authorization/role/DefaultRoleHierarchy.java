@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class RoleHierarchyImpl implements RoleHierarchy {
+public class DefaultRoleHierarchy implements RoleHierarchy {
     private final Map<String, Set<String>> hierarchy;
 
-    public RoleHierarchyImpl(Map<String, Set<String>> hierarchy) {
+    public DefaultRoleHierarchy(Map<String, Set<String>> hierarchy) {
         this.hierarchy = hierarchy;
     }
 

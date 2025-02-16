@@ -32,4 +32,11 @@ class RoleHierarchyTest {
         assertThat(hierarchy.getReachableGrantedAuthorities(Set.of("ADMIN")))
                 .containsExactlyInAnyOrder("ADMIN", "MANAGER", "USER");
     }
+
+    @DisplayName("RoleHierarchy 를 설정하지 않았을 경우에는 NullRoleHierarchy 를 사용한다.")
+    @Test
+    void nullRoleHierarchy() {
+        assertThat(new RoleHierarchyBuilder().build())
+                .isEqualTo(NullRoleHierarchy.getInstance());
+    }
 }
