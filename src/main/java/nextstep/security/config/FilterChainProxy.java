@@ -1,11 +1,16 @@
 package nextstep.security.config;
 
+import jakarta.servlet.http.HttpServletResponse;
+import nextstep.security.authentication.AuthenticationException;
+import nextstep.security.authorization.ForbiddenException;
 import org.springframework.web.filter.GenericFilterBean;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.List;
+
+import static jakarta.servlet.http.HttpServletResponse.*;
 
 public class FilterChainProxy extends GenericFilterBean {
     private final List<SecurityFilterChain> filterChains;
@@ -16,10 +21,19 @@ public class FilterChainProxy extends GenericFilterBean {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        List<Filter> filters = getFilters((HttpServletRequest) request);
-
-        VirtualFilterChain virtualFilterChain = new VirtualFilterChain(chain, filters);
-        virtualFilterChain.doFilter(request, response);
+        final HttpServletRequest httpRequest = (HttpServletRequest) request;
+        final HttpServletResponse httpResponse = (HttpServletResponse) response;
+        try {
+            new VirtualFilterChain(
+                    chain, getFilters(httpRequest)
+            ).doFilter(request, response);
+        } catch (AuthenticationException e) {
+            httpResponse.setStatus(SC_UNAUTHORIZED);
+        } catch (ForbiddenException e) {
+            httpResponse.setStatus(SC_FORBIDDEN);
+        } catch (Exception e) {
+            httpResponse.setStatus(SC_INTERNAL_SERVER_ERROR);
+        }
     }
 
     private List<Filter> getFilters(HttpServletRequest request) {
