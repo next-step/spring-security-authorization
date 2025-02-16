@@ -14,6 +14,8 @@ import nextstep.security.authorization.manager.AuthorizationManager;
 import nextstep.security.authorization.manager.DenyAllAuthorizationManager;
 import nextstep.security.authorization.manager.PermitAllAuthorizationManager;
 import nextstep.security.authorization.manager.RequestAuthorizationManager;
+import nextstep.security.authorization.role.RoleHierarchy;
+import nextstep.security.authorization.role.RoleHierarchyBuilder;
 import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.DelegatingFilterProxy;
 import nextstep.security.config.FilterChainProxy;
@@ -43,8 +45,10 @@ public class SecurityConfig {
     }
 
     @Bean
-    public DelegatingFilterProxy delegatingFilterProxy() {
-        return new DelegatingFilterProxy(filterChainProxy(List.of(securityFilterChain())));
+    public DelegatingFilterProxy delegatingFilterProxy(
+            final SecurityFilterChain securityFilterChain
+    ) {
+        return new DelegatingFilterProxy(filterChainProxy(List.of(securityFilterChain)));
     }
 
     @Bean
@@ -58,20 +62,28 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain() {
+    public SecurityFilterChain securityFilterChain(
+            final RoleHierarchy roleHierarchy,
+            final UserDetailsService userDetailsService
+    ) {
         final AuthorizationManager<HttpServletRequest> authorizationManager = new RequestAuthorizationManager(List.of(
-                createMvcMatcher(GET, "/members", new AuthorityAuthorizationManager<>("ADMIN")),
+                createMvcMatcher(GET, "/members", new AuthorityAuthorizationManager<>(roleHierarchy, "ADMIN")),
                 createMvcMatcher(GET, "/members/me", new AuthenticatedAuthorizationManager<>()),
                 createMvcMatcher(GET, "/search", new PermitAllAuthorizationManager<>())
         ), createDefaultMatcher(new DenyAllAuthorizationManager<>()));
-        return new DefaultSecurityFilterChain(
-                List.of(
-                        new SecurityContextHolderFilter(),
-                        new UsernamePasswordAuthenticationFilter(userDetailsService()),
-                        new BasicAuthenticationFilter(userDetailsService()),
-                        new AuthorizationFilter(authorizationManager)
-                )
-        );
+        return new DefaultSecurityFilterChain(List.of(
+                new SecurityContextHolderFilter(),
+                new UsernamePasswordAuthenticationFilter(userDetailsService),
+                new BasicAuthenticationFilter(userDetailsService),
+                new AuthorizationFilter(authorizationManager)
+        ));
+    }
+
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        return new RoleHierarchyBuilder()
+                .role("ADMIN").implies("USER")
+                .build();
     }
 
     @Bean
