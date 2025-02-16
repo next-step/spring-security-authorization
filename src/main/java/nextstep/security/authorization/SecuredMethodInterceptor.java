@@ -1,6 +1,9 @@
 package nextstep.security.authorization;
 
+import java.util.Collection;
 import nextstep.security.authentication.Authentication;
+import nextstep.security.authorization.method.SecuredAuthorizationManager;
+import nextstep.security.authorization.web.AuthorityAuthorizationManager;
 import nextstep.security.authorization.web.AuthorizationResult;
 import nextstep.security.context.SecurityContextHolder;
 import org.aopalliance.aop.Advice;
@@ -16,8 +19,8 @@ public class SecuredMethodInterceptor implements MethodInterceptor, PointcutAdvi
     private final AuthorizationManager<MethodInvocation> authorizationManager;
     private final Pointcut pointcut;
 
-    public SecuredMethodInterceptor(AuthorizationManager<MethodInvocation> authorizationManager) {
-        this.authorizationManager = authorizationManager;
+    public SecuredMethodInterceptor(AuthorityAuthorizationManager<Collection<String>> authorizationManager) {
+        this.authorizationManager = new SecuredAuthorizationManager(authorizationManager);
         this.pointcut = new AnnotationMatchingPointcut(null, Secured.class);
     }
 

@@ -1,10 +1,11 @@
 package nextstep.security.authentication;
 
-import java.util.Set;
+import java.util.Collection;
+import nextstep.security.core.GrantedAuthority;
 
 public interface Authentication {
 
-    Set<String> getAuthorities();
+    Collection<GrantedAuthority> getAuthorities();
 
     Object getCredentials();
 
