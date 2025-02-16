@@ -16,7 +16,10 @@ public class SecuredAuthorizationManager implements AuthorizationManager<MethodI
             throw new AuthenticationException();
         }
         var securedAnnotation = method.getAnnotation(Secured.class);
-        if (!authentication.getAuthorities().contains(securedAnnotation.value())) {
+        boolean hasNoAuthority = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .noneMatch(it -> it.equals(securedAnnotation.value()));
+        if (hasNoAuthority) {
             return AuthorizationDecision.fail();
         }
         return AuthorizationDecision.success();

@@ -1,13 +1,24 @@
 package nextstep.security.authorization;
 
-//FIXME: 현재 인증 에러인지 인가에러인지 구분할 방법이 없음
-public record AuthorizationDecision(boolean isSuccess) {
+public class AuthorizationDecision {
+    private static final AuthorizationDecision SUCCESS = new AuthorizationDecision(true);
+    private static final AuthorizationDecision FAIL = new AuthorizationDecision(false);
+
+    private final boolean isSuccess;
+
+    private AuthorizationDecision(boolean isSuccess) {
+        this.isSuccess = isSuccess;
+    }
+
     public static AuthorizationDecision success() {
-        return new AuthorizationDecision(true);
+        return SUCCESS;
     }
 
     public static AuthorizationDecision fail() {
-        return new AuthorizationDecision(false);
+        return FAIL;
     }
 
+    public boolean isSuccess() {
+        return isSuccess;
+    }
 }

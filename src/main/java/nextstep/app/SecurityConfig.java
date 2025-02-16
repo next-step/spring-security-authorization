@@ -3,6 +3,7 @@ package nextstep.app;
 import jakarta.servlet.http.HttpServletRequest;
 import nextstep.app.domain.Member;
 import nextstep.app.domain.MemberRepository;
+import nextstep.app.domain.Role;
 import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.authentication.BasicAuthenticationFilter;
 import nextstep.security.authentication.UsernamePasswordAuthenticationFilter;
@@ -22,6 +23,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.http.HttpMethod;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -47,9 +49,8 @@ public class SecurityConfig {
 
     @Bean
     public SecuredMethodInterceptor securedMethodInterceptor() {
-        return new SecuredMethodInterceptor(new SecuredAuthorizationManager());
+        return new SecuredMethodInterceptor();
     }
-
 
     @Bean
     public SecurityFilterChain securityFilterChain() {
@@ -58,7 +59,7 @@ public class SecurityConfig {
                         new SecurityContextHolderFilter(),
                         new UsernamePasswordAuthenticationFilter(userDetailsService()),
                         new BasicAuthenticationFilter(userDetailsService()),
-                        new AuthorizationFilter(requestAuthorizationManager())
+                        new AuthorizationFilter(requestMatcherDelegatingAuthorizationManager())
                 )
         );
     }
@@ -81,7 +82,7 @@ public class SecurityConfig {
                 }
 
                 @Override
-                public Set<String> getAuthorities() {
+                public Set<GrantedAuthority> getAuthorities() {
                     return member.getRoles();
                 }
             };
@@ -89,14 +90,14 @@ public class SecurityConfig {
     }
 
     @Bean
-    public RequestAuthorizationManager requestAuthorizationManager() {
-        List<RequestMatcherEntry<AuthorizationManager<HttpServletRequest>>> mappings = List.of(
+    public RequestMatcherDelegatingAuthorizationManager requestMatcherDelegatingAuthorizationManager() {
+        List<RequestMatcherEntry<AuthorizationManager<RequestAuthorizationContext<Collection<GrantedAuthority>>>>> mappings = List.of(
                 new RequestMatcherEntry<>(MvcRequestMatcher.of(HttpMethod.GET, "/members/me"), new AuthenticatedAuthorizationManager<>()),
-                new RequestMatcherEntry<>(MvcRequestMatcher.of(HttpMethod.GET, "/members"), AuthorityAuthorizationManager.of("ADMIN")),
+                new RequestMatcherEntry<>(MvcRequestMatcher.of(HttpMethod.GET, "/members"), new AuthoritiesAuthorizationManager()),
                 new RequestMatcherEntry<>(MvcRequestMatcher.of(HttpMethod.GET, "/search"), new PermitAllAuthorizationManager<>()),
                 new RequestMatcherEntry<>(AnyRequestMatcher.INSTANCE, new PermitAllAuthorizationManager<>())
         );
 
-        return new RequestAuthorizationManager(mappings);
+        return new RequestMatcherDelegatingAuthorizationManager(mappings);
     }
 }
