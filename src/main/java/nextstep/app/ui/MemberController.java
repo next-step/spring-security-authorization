@@ -2,12 +2,16 @@ package nextstep.app.ui;
 
 import nextstep.app.domain.Member;
 import nextstep.app.domain.MemberRepository;
+import nextstep.security.authentication.Authentication;
+import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.authorization.Secured;
+import nextstep.security.context.SecurityContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class MemberController {
@@ -29,5 +33,18 @@ public class MemberController {
     public ResponseEntity<List<Member>> search() {
         List<Member> members = memberRepository.findAll();
         return ResponseEntity.ok(members);
+    }
+
+    @Secured("USER")
+    @GetMapping("/members/me")
+    public ResponseEntity<Member> me() {
+        final Authentication authentication = SecurityContextHolder
+                .getContext().getAuthentication();
+
+        Member member = memberRepository.findByEmail(
+                authentication.getPrincipal().toString()
+        ).orElseThrow(AuthenticationException::new);
+
+        return ResponseEntity.ok(member);
     }
 }
