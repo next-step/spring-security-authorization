@@ -13,7 +13,7 @@ import nextstep.security.core.SimpleGrantedAuthority;
 
 public class RoleHierarchyImpl implements RoleHierarchy {
 
-    private Map<String, Set<GrantedAuthority>> rolesReachableInOneOrMoreStepsMap = null;
+    private final Map<String, Set<GrantedAuthority>> rolesReachableInOneOrMoreStepsMap;
 
     private RoleHierarchyImpl(Map<String, Set<GrantedAuthority>> hierarchy) {
         this.rolesReachableInOneOrMoreStepsMap = buildRolesReachableInOneOrMoreStepsMap(hierarchy);
