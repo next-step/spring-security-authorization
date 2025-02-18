@@ -8,9 +8,12 @@ public class NullRoleHierarchy implements RoleHierarchy {
     }
 
     @Override
-    public Collection<String> getReachableGrantedAuthorities(Collection<String> authorities) {
+    public Collection<GrantedAuthority> getReachableGrantedAuthorities(
+            Collection<GrantedAuthority> authorities
+    ) {
         return authorities;
     }
+
 
     private static class SingletonHolder {
         private static final NullRoleHierarchy INSTANCE = new NullRoleHierarchy();

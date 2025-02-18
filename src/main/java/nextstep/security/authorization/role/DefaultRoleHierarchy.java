@@ -16,15 +16,15 @@ public class DefaultRoleHierarchy implements RoleHierarchy {
     }
 
     @Override
-    public Collection<String> getReachableGrantedAuthorities(Collection<String> authorities) {
+    public Collection<GrantedAuthority> getReachableGrantedAuthorities(Collection<GrantedAuthority> authorities) {
         if (authorities == null || authorities.isEmpty()) {
             return List.of();
         }
         final Set<String> reachableRoles = new HashSet<>();
-        for (String authority : authorities) {
-            traverseHierarchy(authority, reachableRoles);
+        for (GrantedAuthority authority : authorities) {
+            traverseHierarchy(authority.getAuthority(), reachableRoles);
         }
-        return reachableRoles;
+        return GrantedAuthority.setOf(reachableRoles);
     }
 
     private void traverseHierarchy(String role, Set<String> accumulatedRoles) {

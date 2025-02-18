@@ -1,7 +1,10 @@
 package nextstep.security.authorization.manager;
 
 import nextstep.security.authentication.Authentication;
+import nextstep.security.authorization.role.GrantedAuthority;
 import nextstep.security.authorization.role.RoleHierarchy;
+
+import java.util.Collection;
 
 public class AuthorityAuthorizationManager<T> implements AuthorizationManager<T> {
     private final RoleHierarchy roleHierarchy;
@@ -24,8 +27,15 @@ public class AuthorityAuthorizationManager<T> implements AuthorizationManager<T>
     }
 
     private boolean isAuthorized(Authentication authentication) {
-        return roleHierarchy.getReachableGrantedAuthorities(
-                authentication.getAuthorities()
-        ).contains(authority);
+        final Collection<GrantedAuthority> authorities = roleHierarchy
+                .getReachableGrantedAuthorities(
+                        GrantedAuthority.setOf(authentication.getAuthorities())
+                );
+        for (GrantedAuthority grantedAuthority : authorities) {
+            if (grantedAuthority.getAuthority().equals(authority)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
