@@ -17,13 +17,11 @@ import java.util.List;
 
 public class AuthorizationFilter extends GenericFilterBean {
 
-    private final RequestAuthorizationManager authorizationManager = new RequestAuthorizationManager(
-            List.of(
-                    new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members"), new AuthorityAuthorizationManager("ADMIN")),
-                    new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members/me"), new AuthorityAuthorizationManager("")),
-                    new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/search"), AuthorityAuthorizationManager.permitAll())
-            )
-    );
+    private final RequestAuthorizationManager authorizationManager;
+
+    public AuthorizationFilter(final RequestAuthorizationManager authorizationManager) {
+        this.authorizationManager = authorizationManager;
+    }
 
     @Override
     public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain filterChain) throws IOException, ServletException {

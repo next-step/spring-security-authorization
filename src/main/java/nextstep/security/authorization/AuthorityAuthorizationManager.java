@@ -24,7 +24,14 @@ public class AuthorityAuthorizationManager<T> implements AuthorizationManager<T>
         }
 
         final boolean granted = authentication.getAuthorities().stream()
-                .anyMatch(requestAuthority -> authority.isBlank() || requestAuthority.equals(authority));
+                .anyMatch(requestAuthority -> {
+                    if (authority.equals(ADMIN)) {
+                        return ADMIN.equals(requestAuthority);
+                    } else if (authority.equals(USER)) {
+                        return ADMIN.equals(requestAuthority) || USER.equals(requestAuthority);
+                    }
+                    return false;
+                });
 
         return new AuthorizationDecision(granted);
     }
