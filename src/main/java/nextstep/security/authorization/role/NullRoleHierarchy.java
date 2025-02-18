@@ -1,7 +1,6 @@
 package nextstep.security.authorization.role;
 
 import java.util.Collection;
-import java.util.List;
 
 public class NullRoleHierarchy implements RoleHierarchy {
     public static NullRoleHierarchy getInstance() {
@@ -10,7 +9,7 @@ public class NullRoleHierarchy implements RoleHierarchy {
 
     @Override
     public Collection<String> getReachableGrantedAuthorities(Collection<String> authorities) {
-        return List.of();
+        return authorities;
     }
 
     private static class SingletonHolder {

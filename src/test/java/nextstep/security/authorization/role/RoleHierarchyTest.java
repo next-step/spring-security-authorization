@@ -42,7 +42,7 @@ class RoleHierarchyTest {
                 () -> assertThat(hierarchy)
                         .isEqualTo(NullRoleHierarchy.getInstance()),
                 () -> assertThat(hierarchy.getReachableGrantedAuthorities(Set.of("ADMIN")))
-                        .isEmpty()
+                        .containsExactlyInAnyOrder("ADMIN")
         );
     }
 }
