@@ -1,6 +1,7 @@
 package nextstep.security.authorization.manager;
 
 import nextstep.security.authentication.Authentication;
+import nextstep.security.authorization.role.RoleHierarchyBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -13,7 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 class AuthorityAuthorizationManagerTest {
     private final AuthorizationManager<String> manager = new AuthorityAuthorizationManager<>(
-            "ADMIN", "USER"
+            new RoleHierarchyBuilder().role("ADMIN").implies("USER").build(),
+            "USER"
     );
 
     @DisplayName("유저가 인증되지 않았다면 인가받지 못한다.")
