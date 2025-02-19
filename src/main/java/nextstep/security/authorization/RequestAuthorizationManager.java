@@ -9,9 +9,9 @@ import java.util.List;
 
 public class RequestAuthorizationManager implements AuthorizationManager<HttpServletRequest> {
 
-    private final List<RequestMatcherEntry<AuthorizationManager>> mappings;
+    private final List<RequestMatcherEntry<AuthorizationManager<HttpServletRequest>>> mappings;
 
-    public RequestAuthorizationManager(final List<RequestMatcherEntry<AuthorizationManager>> mappings) {
+    public RequestAuthorizationManager(final List<RequestMatcherEntry<AuthorizationManager<HttpServletRequest>>> mappings) {
         this.mappings = mappings;
     }
 
@@ -23,7 +23,7 @@ public class RequestAuthorizationManager implements AuthorizationManager<HttpSer
                     return matcher.matches(request);
                 }).findFirst()
                 .map(mapping -> {
-                    final AuthorizationManager authorizationManager = mapping.getEntry();
+                    final AuthorizationManager<HttpServletRequest> authorizationManager = mapping.getEntry();
                     return authorizationManager.check(authentication, request);
                 }).orElse(new AuthorizationDecision(false));
     }

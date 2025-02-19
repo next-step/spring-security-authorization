@@ -7,6 +7,7 @@ import org.springframework.aop.support.AopUtils;
 import java.lang.reflect.Method;
 
 public class SecuredAuthorizationManager implements AuthorizationManager<MethodInvocation> {
+
     @Override
     public AuthorizationDecision check(final Authentication authentication, final MethodInvocation methodInvocation) {
         if (authentication == null) {
@@ -14,15 +15,9 @@ public class SecuredAuthorizationManager implements AuthorizationManager<MethodI
         }
 
         final String authorities = getAuthorities(methodInvocation);
+        final AuthorityAuthorizationManager<Object> delegate = new AuthorityAuthorizationManager<>(authorities);
 
-        final boolean hasNotRequiredRole = authentication.getAuthorities().stream()
-                .noneMatch(role -> role.equals(authorities));
-
-        if (hasNotRequiredRole) {
-            return new AuthorizationDecision(false);
-        }
-
-        return new AuthorizationDecision(true);
+        return delegate.check(authentication, methodInvocation);
     }
 
     private String getAuthorities(final MethodInvocation methodInvocation) {

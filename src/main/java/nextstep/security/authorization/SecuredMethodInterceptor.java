@@ -12,10 +12,11 @@ import org.springframework.aop.support.annotation.AnnotationMatchingPointcut;
 
 public class SecuredMethodInterceptor implements MethodInterceptor, PointcutAdvisor, AopInfrastructureBean {
 
-    private final AuthorizationManager<MethodInvocation> authorizationManager = new SecuredAuthorizationManager();
+    private final AuthorizationManager<MethodInvocation> authorizationManager;
     private final Pointcut pointcut;
 
-    public SecuredMethodInterceptor() {
+    public SecuredMethodInterceptor(final AuthorizationManager<MethodInvocation> authorizationManager) {
+        this.authorizationManager = authorizationManager;
         this.pointcut = new AnnotationMatchingPointcut(null, Secured.class);
     }
 

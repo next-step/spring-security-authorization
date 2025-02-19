@@ -111,6 +111,6 @@ class BasicAuthTest {
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         );
 
-        response.andExpect(status().isUnauthorized());
+        response.andExpect(status().isForbidden());
     }
 }

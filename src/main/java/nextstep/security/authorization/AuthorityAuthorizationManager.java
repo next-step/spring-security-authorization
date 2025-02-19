@@ -3,18 +3,20 @@ package nextstep.security.authorization;
 import nextstep.security.authentication.Authentication;
 import nextstep.security.authentication.AuthenticationException;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public class AuthorityAuthorizationManager<T> implements AuthorizationManager<T> {
-    public static final String ADMIN = "ADMIN";
-    public static final String USER = "USER";
 
-    private final String authority;
+    private final Set<String> authorities;
 
-    public AuthorityAuthorizationManager(final String authority) {
-        this.authority = authority;
-    }
-
-    public static AuthorizationManager<Object> permitAll() {
-        return (authentication, object) -> new AuthorizationDecision(true);
+    public AuthorityAuthorizationManager(final String authority, final String... authorities) {
+        this.authorities = Stream.concat(
+                Stream.of(authority),
+                Arrays.stream(authorities)
+        ).collect(Collectors.toUnmodifiableSet());
     }
 
     @Override
@@ -24,14 +26,7 @@ public class AuthorityAuthorizationManager<T> implements AuthorizationManager<T>
         }
 
         final boolean granted = authentication.getAuthorities().stream()
-                .anyMatch(requestAuthority -> {
-                    if (authority.equals(ADMIN)) {
-                        return ADMIN.equals(requestAuthority);
-                    } else if (authority.equals(USER)) {
-                        return ADMIN.equals(requestAuthority) || USER.equals(requestAuthority);
-                    }
-                    return false;
-                });
+                .anyMatch(this.authorities::contains);
 
         return new AuthorizationDecision(granted);
     }

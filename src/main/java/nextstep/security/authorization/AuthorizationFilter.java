@@ -7,19 +7,15 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import nextstep.security.authentication.Authentication;
 import nextstep.security.context.SecurityContextHolder;
-import nextstep.security.request.MvcRequestMatcher;
-import nextstep.security.request.RequestMatcherEntry;
-import org.springframework.http.HttpMethod;
 import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
-import java.util.List;
 
 public class AuthorizationFilter extends GenericFilterBean {
 
-    private final RequestAuthorizationManager authorizationManager;
+    private final AuthorizationManager<HttpServletRequest> authorizationManager;
 
-    public AuthorizationFilter(final RequestAuthorizationManager authorizationManager) {
+    public AuthorizationFilter(final AuthorizationManager<HttpServletRequest> authorizationManager) {
         this.authorizationManager = authorizationManager;
     }
 
