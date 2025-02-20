@@ -1,0 +1,33 @@
+package nextstep.security.authorization;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import nextstep.security.authentication.Authentication;
+import nextstep.security.context.SecurityContextHolder;
+import org.springframework.web.filter.GenericFilterBean;
+
+import java.io.IOException;
+
+public class AuthorizationFilter extends GenericFilterBean {
+
+    private final AuthorizationManager<HttpServletRequest> authorizationManager;
+
+    public AuthorizationFilter(final AuthorizationManager<HttpServletRequest> authorizationManager) {
+        this.authorizationManager = authorizationManager;
+    }
+
+    @Override
+    public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain filterChain) throws IOException, ServletException {
+        final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final AuthorizationDecision decision = this.authorizationManager.check(authentication, (HttpServletRequest) request);
+
+        if (decision == null || !decision.isGranted()) {
+            throw new ForbiddenException();
+        }
+
+        filterChain.doFilter(request, response);
+    }
+}
