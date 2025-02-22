@@ -3,6 +3,8 @@ package nextstep.app;
 import jakarta.servlet.http.HttpServletRequest;
 import nextstep.app.domain.Member;
 import nextstep.app.domain.MemberRepository;
+import nextstep.security.access.RoleHierarchy;
+import nextstep.security.access.RoleHierarchyImpl;
 import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.authentication.BasicAuthenticationFilter;
 import nextstep.security.authentication.UsernamePasswordAuthenticationFilter;
@@ -45,8 +47,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public DelegatingFilterProxy delegatingFilterProxy() {
-        return new DelegatingFilterProxy(filterChainProxy(List.of(securityFilterChain())));
+    public DelegatingFilterProxy delegatingFilterProxy(final RoleHierarchy roleHierarchy) {
+        return new DelegatingFilterProxy(filterChainProxy(List.of(securityFilterChain(roleHierarchy))));
     }
 
     @Bean
@@ -55,13 +57,13 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecuredMethodInterceptor securedMethodInterceptor() {
-        return new SecuredMethodInterceptor(securedAuthorizationManager());
+    public SecuredMethodInterceptor securedMethodInterceptor(final RoleHierarchy roleHierarchy) {
+        return new SecuredMethodInterceptor(securedAuthorizationManager(roleHierarchy));
     }
 
     @Bean
-    public SecuredAuthorizationManager securedAuthorizationManager() {
-        return new SecuredAuthorizationManager();
+    public SecuredAuthorizationManager securedAuthorizationManager(final RoleHierarchy roleHierarchy) {
+        return new SecuredAuthorizationManager(roleHierarchy);
     }
 
 //    @Bean
@@ -70,22 +72,34 @@ public class SecurityConfig {
 //    }
 
     @Bean
-    public SecurityFilterChain securityFilterChain() {
+    public SecurityFilterChain securityFilterChain(final RoleHierarchy roleHierarchy) {
         return new DefaultSecurityFilterChain(
                 List.of(
                         new SecurityContextHolderFilter(),
                         new UsernamePasswordAuthenticationFilter(userDetailsService()),
                         new BasicAuthenticationFilter(userDetailsService()),
-                        new AuthorizationFilter(requestAuthorizationManager())
+                        new AuthorizationFilter(requestAuthorizationManager(roleHierarchy))
                 )
         );
     }
 
     @Bean
-    public RequestAuthorizationManager requestAuthorizationManager() {
+    public RoleHierarchy roleHierarchy() {
+        final RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
+        roleHierarchy.setHierarchy("""
+                ADMIN > MASTER
+                MASTER > MANAGER
+                """);
+
+        return roleHierarchy;
+    }
+
+    @Bean
+    public RequestAuthorizationManager requestAuthorizationManager(final RoleHierarchy roleHierarchy) {
         List<RequestMatcherEntry<AuthorizationManager<HttpServletRequest>>> mappings = new ArrayList<>();
-        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members"), new AuthorityAuthorizationManager<>("ADMIN")));
+        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members"), new AuthorityAuthorizationManager<>("ADMIN", roleHierarchy)));
         mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members/me"), new AuthenticatedAuthorizationManager<>()));
+        mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/members/managers"), new AuthorityAuthorizationManager<>("MASTER", roleHierarchy)));
         mappings.add(new RequestMatcherEntry<>(new MvcRequestMatcher(HttpMethod.GET, "/search"), new PermitAllAuthorizationManager<>()));
         mappings.add(new RequestMatcherEntry<>(AnyRequestMatcher.INSTANCE, new DenyAllAuthorizationManager<>()));
         return new RequestAuthorizationManager(mappings);
