@@ -47,12 +47,4 @@ public class MemberController {
 
         return ResponseEntity.ok(member);
     }
-
-    @GetMapping("/members/managers")
-    public ResponseEntity<List<Member>> managers() {
-        List<Member> members = memberRepository.findAll()
-                .stream().filter(member -> member.getRoles().contains("MANAGER"))
-                .toList();
-        return ResponseEntity.ok(members);
-    }
 }
