@@ -17,6 +17,7 @@ import java.util.Base64;
 import java.util.Set;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -47,7 +48,8 @@ class BasicAuthTest {
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         );
 
-        response.andExpect(status().isOk())
+        response.andDo(print())
+                .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(2));
     }
 
@@ -61,7 +63,8 @@ class BasicAuthTest {
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         );
 
-        response.andExpect(status().isForbidden());
+        response.andDo(print())
+                .andExpect(status().isForbidden());
     }
 
     @DisplayName("사용자 정보가 없는 경우 요청이 실패해야 한다.")
@@ -74,7 +77,8 @@ class BasicAuthTest {
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         );
 
-        response.andExpect(status().isUnauthorized());
+        response.andDo(print())
+                .andExpect(status().isUnauthorized());
     }
 
     @DisplayName("Invalid한 패스워드로 요청할 경우 실패해야 한다.")
@@ -87,6 +91,7 @@ class BasicAuthTest {
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         );
 
-        response.andExpect(status().isUnauthorized());
+        response.andDo(print())
+                .andExpect(status().isUnauthorized());
     }
 }

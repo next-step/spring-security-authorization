@@ -1,6 +1,7 @@
 package nextstep.security.context;
 
 import nextstep.security.authentication.Authentication;
+import org.springframework.lang.Nullable;
 
 import java.io.Serializable;
 
@@ -18,6 +19,7 @@ public class SecurityContext implements Serializable {
         this.authentication = authentication;
     }
 
+    @Nullable
     public Authentication getAuthentication() {
         return authentication;
     }

@@ -1,5 +1,6 @@
 package nextstep.security.authentication;
 
+import jakarta.annotation.Nullable;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -17,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 public class UsernamePasswordAuthenticationFilter extends GenericFilterBean {
-    public static final String SPRING_SECURITY_CONTEXT_KEY = "SPRING_SECURITY_CONTEXT";
+
     private static final String DEFAULT_REQUEST_URI = "/login";
 
     private final AuthenticationManager authenticationManager;
@@ -49,12 +50,12 @@ public class UsernamePasswordAuthenticationFilter extends GenericFilterBean {
             SecurityContextHolder.setContext(context);
 
             securityContextRepository.saveContext(context, (HttpServletRequest) request, (HttpServletResponse) response);
-
         } catch (Exception e) {
             ((HttpServletResponse) response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         }
     }
 
+    @Nullable
     private Authentication convert(ServletRequest request) {
         try {
             Map<String, String[]> parameterMap = request.getParameterMap();
@@ -65,6 +66,5 @@ public class UsernamePasswordAuthenticationFilter extends GenericFilterBean {
         } catch (Exception e) {
             return null;
         }
-
     }
 }
