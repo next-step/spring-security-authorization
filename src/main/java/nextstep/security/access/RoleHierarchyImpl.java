@@ -33,9 +33,15 @@ public class RoleHierarchyImpl implements RoleHierarchy {
 
                     this.rolesReachableInOneOrMoreStepsMap.get(role).add(role);
                     this.rolesReachableInOneOrMoreStepsMap.get(role).add(step);
+
+                    this.rolesReachableInOneOrMoreStepsMap.putIfAbsent(step, new HashSet<>());
+                    this.rolesReachableInOneOrMoreStepsMap.get(step).add(step);
+
                 });
 
         this.rolesReachableInOneOrMoreStepsMap.forEach(this::buildRolesReachableInOneOrMoreStepsMap);
+
+        checkCircularHierarchy();
     }
 
     private void buildRolesReachableInOneOrMoreStepsMap(final String role, final Set<String> steps) {
@@ -48,5 +54,30 @@ public class RoleHierarchyImpl implements RoleHierarchy {
 
             value.addAll(steps);
         });
+    }
+
+    private void checkCircularHierarchy() {
+        this.rolesReachableInOneOrMoreStepsMap.forEach((role, steps) -> {
+            final HashSet<String> visited = new HashSet<>();
+            visited.add(role);
+
+            steps.forEach(step -> checkCircularHierarchyInternal(role, step, visited));
+        });
+    }
+
+    private void checkCircularHierarchyInternal(final String role, final String step, final Set<String> visited) {
+        if (visited.contains(step)) {
+            return;
+        }
+
+        visited.add(step);
+
+        final Set<String> steps = this.rolesReachableInOneOrMoreStepsMap.get(step);
+
+        if (steps.contains(role)) {
+            throw new IllegalStateException("Cyclic role inheritance definition");
+        }
+
+        steps.forEach(nextStep -> checkCircularHierarchyInternal(role, nextStep, visited));
     }
 }
