@@ -1,5 +1,6 @@
 package nextstep.security.authorization;
 
+import jakarta.annotation.Nonnull;
 import nextstep.security.authentication.Authentication;
 import nextstep.security.context.SecurityContextHolder;
 import org.aopalliance.aop.Advice;
@@ -15,13 +16,13 @@ public class SecuredMethodInterceptor implements MethodInterceptor, PointcutAdvi
     private final Pointcut pointcut;
     private final AuthorizationManager<MethodInvocation> authorizationManager;
 
-    public SecuredMethodInterceptor(final AuthorizationManager<MethodInvocation> securedAuthorizationManager) {
+    public SecuredMethodInterceptor() {
         this.pointcut = new AnnotationMatchingPointcut(null, Secured.class);
-        this.authorizationManager = securedAuthorizationManager;
+        this.authorizationManager = new SecuredAuthorizationManager();
     }
 
     @Override
-    public Object invoke(MethodInvocation invocation) throws Throwable {
+    public Object invoke(@Nonnull MethodInvocation invocation) throws Throwable {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         var authorizationDecision = authorizationManager.check(authentication, invocation);
         if (!authorizationDecision.isSuccess()) {
@@ -30,18 +31,14 @@ public class SecuredMethodInterceptor implements MethodInterceptor, PointcutAdvi
         return invocation.proceed();
     }
 
+    @Nonnull
     @Override
     public Pointcut getPointcut() {
         return pointcut;
     }
-
+    @Nonnull
     @Override
     public Advice getAdvice() {
         return this;
-    }
-
-    @Override
-    public boolean isPerInstance() {
-        return true;
     }
 }

@@ -1,5 +1,7 @@
 package nextstep.app.domain;
 
+import nextstep.security.authorization.GrantedAuthority;
+
 import java.util.Set;
 
 public class Member {
@@ -7,9 +9,9 @@ public class Member {
     private final String password;
     private final String name;
     private final String imageUrl;
-    private final Set<String> roles;
+    private final Set<GrantedAuthority> roles;
 
-    public Member(String email, String password, String name, String imageUrl, Set<String> roles) {
+    public Member(String email, String password, String name, String imageUrl, Set<GrantedAuthority> roles) {
         this.email = email;
         this.password = password;
         this.name = name;
@@ -33,7 +35,7 @@ public class Member {
         return imageUrl;
     }
 
-    public Set<String> getRoles() {
+    public Set<GrantedAuthority> getRoles() {
         return roles;
     }
 

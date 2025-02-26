@@ -3,6 +3,7 @@ package nextstep.app;
 import jakarta.servlet.http.HttpServletRequest;
 import nextstep.app.domain.Member;
 import nextstep.app.domain.MemberRepository;
+import nextstep.app.domain.Role;
 import nextstep.security.authentication.AuthenticationException;
 import nextstep.security.authentication.BasicAuthenticationFilter;
 import nextstep.security.authentication.UsernamePasswordAuthenticationFilter;
@@ -15,6 +16,8 @@ import nextstep.security.context.SecurityContextHolderFilter;
 import nextstep.security.requestmatcher.AnyRequestMatcher;
 import nextstep.security.requestmatcher.MvcRequestMatcher;
 import nextstep.security.requestmatcher.RequestMatcherEntry;
+import nextstep.security.rolehierarchy.RoleHierarchy;
+import nextstep.security.rolehierarchy.RoleHierarchyImpl;
 import nextstep.security.userdetails.UserDetails;
 import nextstep.security.userdetails.UserDetailsService;
 import org.springframework.context.annotation.Bean;
@@ -47,9 +50,8 @@ public class SecurityConfig {
 
     @Bean
     public SecuredMethodInterceptor securedMethodInterceptor() {
-        return new SecuredMethodInterceptor(new SecuredAuthorizationManager());
+        return new SecuredMethodInterceptor();
     }
-
 
     @Bean
     public SecurityFilterChain securityFilterChain() {
@@ -58,7 +60,7 @@ public class SecurityConfig {
                         new SecurityContextHolderFilter(),
                         new UsernamePasswordAuthenticationFilter(userDetailsService()),
                         new BasicAuthenticationFilter(userDetailsService()),
-                        new AuthorizationFilter(requestAuthorizationManager())
+                        new AuthorizationFilter(requestMatcherDelegatingAuthorizationManager())
                 )
         );
     }
@@ -81,7 +83,7 @@ public class SecurityConfig {
                 }
 
                 @Override
-                public Set<String> getAuthorities() {
+                public Set<GrantedAuthority> getAuthorities() {
                     return member.getRoles();
                 }
             };
@@ -89,14 +91,22 @@ public class SecurityConfig {
     }
 
     @Bean
-    public RequestAuthorizationManager requestAuthorizationManager() {
+    public RequestMatcherDelegatingAuthorizationManager requestMatcherDelegatingAuthorizationManager() {
         List<RequestMatcherEntry<AuthorizationManager<HttpServletRequest>>> mappings = List.of(
                 new RequestMatcherEntry<>(MvcRequestMatcher.of(HttpMethod.GET, "/members/me"), new AuthenticatedAuthorizationManager<>()),
-                new RequestMatcherEntry<>(MvcRequestMatcher.of(HttpMethod.GET, "/members"), AuthorityAuthorizationManager.of("ADMIN")),
+                new RequestMatcherEntry<>(MvcRequestMatcher.of(HttpMethod.GET, "/members"), new AuthorityAuthorizationManager<>(Set.of(Role.ADMIN), roleHierarchy())),
                 new RequestMatcherEntry<>(MvcRequestMatcher.of(HttpMethod.GET, "/search"), new PermitAllAuthorizationManager<>()),
+                new RequestMatcherEntry<>(MvcRequestMatcher.of(HttpMethod.GET, "/user"), new AuthorityAuthorizationManager<>(Set.of(Role.USER), roleHierarchy())),
                 new RequestMatcherEntry<>(AnyRequestMatcher.INSTANCE, new PermitAllAuthorizationManager<>())
         );
 
-        return new RequestAuthorizationManager(mappings);
+        return new RequestMatcherDelegatingAuthorizationManager(mappings);
+    }
+
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        return RoleHierarchyImpl.with()
+                .role(Role.ADMIN).implies(Role.USER)
+                .build();
     }
 }

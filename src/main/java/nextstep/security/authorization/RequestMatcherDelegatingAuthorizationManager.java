@@ -7,10 +7,10 @@ import nextstep.security.requestmatcher.RequestMatcherEntry;
 
 import java.util.List;
 
-public class RequestAuthorizationManager implements AuthorizationManager<HttpServletRequest> {
+public class RequestMatcherDelegatingAuthorizationManager implements AuthorizationManager<HttpServletRequest> {
     private final List<RequestMatcherEntry<AuthorizationManager<HttpServletRequest>>> mappings;
 
-    public RequestAuthorizationManager(final List<RequestMatcherEntry<AuthorizationManager<HttpServletRequest>>> mappings) {
+    public RequestMatcherDelegatingAuthorizationManager(final List<RequestMatcherEntry<AuthorizationManager<HttpServletRequest>>> mappings) {
         this.mappings = mappings;
     }
 

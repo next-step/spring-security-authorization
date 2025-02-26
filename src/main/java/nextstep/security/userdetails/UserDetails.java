@@ -1,11 +1,13 @@
 package nextstep.security.userdetails;
 
-import java.util.Set;
+import nextstep.security.authorization.GrantedAuthority;
+
+import java.util.Collection;
 
 public interface UserDetails {
     String getUsername();
 
     String getPassword();
 
-    Set<String> getAuthorities();
+    Collection<GrantedAuthority> getAuthorities();
 }

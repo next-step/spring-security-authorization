@@ -1,33 +1,22 @@
 package nextstep.security.authorization;
 
-import jakarta.servlet.http.HttpServletRequest;
 import nextstep.security.authentication.Authentication;
+import nextstep.security.rolehierarchy.RoleHierarchy;
 
 import java.util.Set;
 
-public class AuthorityAuthorizationManager implements AuthorizationManager<HttpServletRequest> {
+public class AuthorityAuthorizationManager<T> implements AuthorizationManager<T> {
 
-    private final Set<String> authorities;
+    private final AuthoritiesAuthorizationManager authoritiesAuthorizationManager;
+    private final Set<GrantedAuthority> authorities;
 
-    private AuthorityAuthorizationManager(final Set<String> authorities) {
+    public AuthorityAuthorizationManager(final Set<GrantedAuthority> authorities, RoleHierarchy roleHierarchy) {
         this.authorities = authorities;
-    }
-
-    public static AuthorityAuthorizationManager of(final Set<String> authorities) {
-        return new AuthorityAuthorizationManager(authorities);
-    }
-
-    public static AuthorityAuthorizationManager of(final String authorities) {
-        return new AuthorityAuthorizationManager(Set.of(authorities));
+        this.authoritiesAuthorizationManager = new AuthoritiesAuthorizationManager(roleHierarchy);
     }
 
     @Override
-    public AuthorizationDecision check(final Authentication authentication, final HttpServletRequest object) {
-        var authorities = authentication.getAuthorities();
-        var matchAuthority = this.authorities.stream().anyMatch(authorities::contains);
-        if (!matchAuthority) {
-            return AuthorizationDecision.fail();
-        }
-        return AuthorizationDecision.success();
+    public AuthorizationDecision check(final Authentication authentication, final T object) {
+        return authoritiesAuthorizationManager.check(authentication, authorities);
     }
 }

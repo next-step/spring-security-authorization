@@ -30,4 +30,9 @@ public class MemberController {
         List<Member> members = memberRepository.findAll();
         return ResponseEntity.ok(members);
     }
+
+    @GetMapping("/user")
+    public ResponseEntity<String> user() {
+        return ResponseEntity.ok("user");
+    }
 }
