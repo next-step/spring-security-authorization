@@ -1,22 +1,17 @@
 package nextstep.security.authorization;
 
+import nextstep.security.access.RoleHierarchy;
 import nextstep.security.authentication.Authentication;
 import nextstep.security.authentication.AuthenticationException;
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 public class AuthorityAuthorizationManager<T> implements AuthorizationManager<T> {
 
-    private final Set<String> authorities;
+    private final String authority;
+    private final RoleHierarchy roleHierarchy;
 
-    public AuthorityAuthorizationManager(final String authority, final String... authorities) {
-        this.authorities = Stream.concat(
-                Stream.of(authority),
-                Arrays.stream(authorities)
-        ).collect(Collectors.toUnmodifiableSet());
+    public AuthorityAuthorizationManager(final String authority, final RoleHierarchy roleHierarchy) {
+        this.authority = authority;
+        this.roleHierarchy = roleHierarchy;
     }
 
     @Override
@@ -25,9 +20,11 @@ public class AuthorityAuthorizationManager<T> implements AuthorizationManager<T>
             throw new AuthenticationException();
         }
 
-        final boolean granted = authentication.getAuthorities().stream()
-                .anyMatch(this.authorities::contains);
+        return new AuthorizationDecision(hasAuthority(authentication));
+    }
 
-        return new AuthorizationDecision(granted);
+    private boolean hasAuthority(final Authentication authentication) {
+        return roleHierarchy.getReachableGrantedAuthorities(authentication.getAuthorities())
+                .contains(this.authority);
     }
 }

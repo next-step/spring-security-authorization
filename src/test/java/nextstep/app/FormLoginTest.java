@@ -23,6 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class FormLoginTest {
     private final Member TEST_ADMIN_MEMBER = new Member("a@a.com", "password", "a", "", Set.of("ADMIN"));
+    private final Member TEST_MANAGER_MEMBER = new Member("b@b.com", "password", "b", "", Set.of("MANAGER"));
     private final Member TEST_USER_MEMBER = new Member("b@b.com", "password", "b", "", Set.of());
 
     @Autowired
@@ -34,6 +35,7 @@ class FormLoginTest {
     @BeforeEach
     void setUp() {
         memberRepository.save(TEST_ADMIN_MEMBER);
+        memberRepository.save(TEST_MANAGER_MEMBER);
         memberRepository.save(TEST_USER_MEMBER);
     }
 
@@ -115,5 +117,27 @@ class FormLoginTest {
         );
 
         membersResponse.andExpect(status().isForbidden());
+    }
+
+    @DisplayName("매니저 회원은 마스터 이상 조회 가능")
+    @Test
+    void admin_login_after_manager_members() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+
+        ResultActions loginResponse = mockMvc.perform(post("/login")
+                .param("username", TEST_ADMIN_MEMBER.getEmail())
+                .param("password", TEST_ADMIN_MEMBER.getPassword())
+                .session(session)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        loginResponse.andExpect(status().isOk());
+
+        ResultActions membersResponse = mockMvc.perform(get("/members/managers")
+                .session(session)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        );
+
+        membersResponse.andExpect(status().isOk());
     }
 }
