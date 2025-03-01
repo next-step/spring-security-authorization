@@ -7,11 +7,11 @@ import java.util.Objects;
 import java.util.Set;
 
 public class AuthorityAuthorizationManager implements AuthorizationManager<HttpServletRequest> {
-    private final RoleHierarchy defined_authorities;
+    private final RoleHierarchy definedAuthorities;
     private final String allowedRoles;
 
     public AuthorityAuthorizationManager(RoleHierarchy roleHierarchy, String authority) {
-        defined_authorities = roleHierarchy;
+        definedAuthorities = roleHierarchy;
         allowedRoles = authority;
     }
 
@@ -31,7 +31,7 @@ public class AuthorityAuthorizationManager implements AuthorizationManager<HttpS
 
     public boolean hasAuthority(Set<String> requestedAuthorities) {
         for (String requestedAuthority : requestedAuthorities) {
-            Set<String> reachableRoleAuthorities = defined_authorities.getReachableRoleAuthorities(requestedAuthority);
+            Set<String> reachableRoleAuthorities = definedAuthorities.getReachableRoleAuthorities(requestedAuthority);
             boolean contains = reachableRoleAuthorities.contains(allowedRoles);
             if (contains) {
                 return true;
