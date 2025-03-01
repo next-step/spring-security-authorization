@@ -7,11 +7,15 @@ import java.util.Objects;
 import java.util.Set;
 
 public class AuthorityAuthorizationManager implements AuthorizationManager<HttpServletRequest> {
-    private final RoleHierarchy definedAuthorities;
+    private RoleHierarchy definedAuthorities = new NullRoleHierarchy();
     private final String allowedRoles;
 
     public AuthorityAuthorizationManager(RoleHierarchy roleHierarchy, String authority) {
         definedAuthorities = roleHierarchy;
+        allowedRoles = authority;
+    }
+
+    public AuthorityAuthorizationManager(String authority) {
         allowedRoles = authority;
     }
 
